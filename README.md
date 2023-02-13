@@ -2,6 +2,7 @@
 
 Code repository for Human Liver Atlas project.
 
+List of sub-project teams
 * Data management
 * Metadata curation → harmonized metadata
 * Quality control
