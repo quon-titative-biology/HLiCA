@@ -69,26 +69,25 @@ transcriptome="genome/GRCh38/GRCh38_gencode/v42/GRCh38p13_gencode_v42"
 METADATA_SAMPLE_DIR="fastqfiles/GoogleSheetMetadata_sample.csv"
 
 OUT_DIR="alignment/ref_${ref}"
-mkdir -p OUT_DIR
+mkdir -p $OUT_DIR
 
 sed 1d $METADATA_SAMPLE_DIR |
-while IFS=, read -r s3_uri SAMPLE FASTQS_DIR FILE_DIR rest; do
+while IFS=, read -r s3_uri sample FASTQS_DIR FILE_DIR rest; do
 
-  echo "Starting sample info:"
-  echo $SAMPLE
+  echo "Starting alignment: sample info:"
+  echo $sample
   echo $FASTQS_DIR
-
 
   cellranger count --id="${sample}" \
                    --transcriptome=${transcriptome} \
-                   --fastqs=${fastqs} \
+                   --fastqs="fastqfiles/${FASTQS_DIR}" \
                    --localcores=64 \
                    --localmem=128 \
                    --sample=${sample}
 
   mv $sample $OUT_DIR
 
-  echo "count finished"
+  echo "Alignment finished"
   echo ""
 
 done

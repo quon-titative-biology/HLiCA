@@ -10,6 +10,7 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 
 ALIGNMENT_DIR = "alignments"
+ALIGNMENT_DIR = "alignment/ref_GRCh38p13_gencode_v42"
 
 RESULTS_DIR = glob.glob(os.path.join(ALIGNMENT_DIR,"*/outs"))
 RESULTS_DIR = [os.path.dirname(g) for g in RESULTS_DIR]
@@ -25,7 +26,15 @@ def load_metric(RESULT_DIR):
     df_metric['ref'] = ref
     return df_metric
 
+def load_metric(RESULT_DIR):
+    sample_name = os.path.basename(RESULT_DIR)
+    df_metric = pd.read_csv(os.path.join(RESULT_DIR,'outs/metrics_summary.csv'))
+    df_metric['sample'] = sample_name
+    return df_metric
+
 df_metric = pd.concat([load_metric(r) for r in RESULTS_DIR])
+df_metric['ref'] = 'GRCh38p13_gencode_v42'
+
 
 metric_to_plot = []
 df_plot = df_metric.copy()
@@ -33,7 +42,7 @@ df_plot = df_plot.melt(id_vars = ['sample','ref'], value_name='Value', var_name=
 df_plot.Value = df_plot.Value.apply(lambda s: float(str(s).replace(",","").replace("%","")))
 
 # g = sns.FacetGrid(data=df_plot, columns='Metric')
-sns.catplot(data=df_plot,
+g = sns.catplot(data=df_plot,
             col='Metric', col_wrap=5,
             kind="bar",
             x='sample',y='Value',hue='ref',
@@ -54,7 +63,7 @@ df_plot = df_metric[metric_to_plot]
 df_plot = df_plot.melt(id_vars = ['sample','ref'], value_name='Value', var_name='Metric')
 df_plot.Value = df_plot.Value.apply(lambda s: float(str(s).replace(",","").replace("%","")))
 
-sns.catplot(data=df_plot,
+g = sns.catplot(data=df_plot,
             col='Metric',
             kind="bar",
             x='sample',y='Value',hue='ref',
