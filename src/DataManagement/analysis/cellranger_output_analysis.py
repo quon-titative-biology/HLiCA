@@ -11,7 +11,11 @@ import seaborn as sns
 
 ALIGNMENT_DIR = "alignments"
 ALIGNMENT_DIR = "alignment/ref_GRCh38p13_gencode_v42"
+ALIGNMENT_DIR = "fastqfiles/submissions-czi004liv/gruen_2023"
 
+PLOT_DIR = ALIGNMENT_DIR
+
+RESULTS_DIR = glob.glob(os.path.join(ALIGNMENT_DIR,"*counts_and_metrics"))
 RESULTS_DIR = glob.glob(os.path.join(ALIGNMENT_DIR,"*/outs"))
 RESULTS_DIR = [os.path.dirname(g) for g in RESULTS_DIR]
 
@@ -21,20 +25,27 @@ def load_metric(RESULT_DIR):
         sample,ref = sample_name.split("-")
         return sample,ref
     sample,ref = parse_sample_name(sample_name)
-    df_metric = pd.read_csv(os.path.join(RESULT_DIR,'outs/metrics_summary.csv'))
+    try:
+        df_metric = pd.read_csv(os.path.join(RESULT_DIR,'outs/metrics_summary.csv'))
+    except:
+        df_metric = pd.read_csv(os.path.join(RESULT_DIR,'metrics_summary.csv'))
     df_metric['sample'] = sample
     df_metric['ref'] = ref
     return df_metric
 
 def load_metric(RESULT_DIR):
     sample_name = os.path.basename(RESULT_DIR)
-    df_metric = pd.read_csv(os.path.join(RESULT_DIR,'outs/metrics_summary.csv'))
+    try:
+        df_metric = pd.read_csv(os.path.join(RESULT_DIR,'outs/metrics_summary.csv'))
+    except:
+        df_metric = pd.read_csv(os.path.join(RESULT_DIR,'metrics_summary.csv'))
     df_metric['sample'] = sample_name
     return df_metric
 
 df_metric = pd.concat([load_metric(r) for r in RESULTS_DIR])
 df_metric['ref'] = 'GRCh38p13_gencode_v42'
 
+df_meta = pd.read_csv('fastqfiles/Gruen/GoogleSheetMetadata_sample.csv')
 
 metric_to_plot = []
 df_plot = df_metric.copy()
@@ -47,7 +58,9 @@ g = sns.catplot(data=df_plot,
             kind="bar",
             x='sample',y='Value',hue='ref',
             sharey=False,sharex=False)
-plt.savefig("alignments_metric.pdf",
+g.set_xticklabels(rotation=90)
+plt.tight_layout()
+plt.savefig(os.path.join(PLOT_DIR,"alignments_metric.pdf"),
             bbox_inches='tight')
 plt.close()
 
@@ -68,6 +81,8 @@ g = sns.catplot(data=df_plot,
             kind="bar",
             x='sample',y='Value',hue='ref',
             sharey=False,sharex=False)
-plt.savefig("alignments_metric-ReadsMapped.pdf",
+g.set_xticklabels(rotation=90)
+plt.tight_layout()
+plt.savefig(os.path.join(PLOT_DIR,"alignments_metric-ReadsMapped.pdf"),
             bbox_inches='tight')
 plt.close()
