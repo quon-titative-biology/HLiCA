@@ -1,7 +1,14 @@
 # Download the data from aws bucket and perform basic sequence alignment with cell ranger
 
+
+
 # Pipeline
 General pipeline including shell script for all components are included in the pipeline.sh
+
+* Download reference genome
+* Download fastqfiles
+* Prepare metdata
+* Align to reference genome
 
 ```
 bash pipeline.sh
@@ -19,9 +26,9 @@ There are multiple options for reference genome, either GRCh38 or T2T. Additiona
 bash download_reference.sh
 ```
 
-# Download fastq files from aws
+# Download fastq files
 
-## Download fastqfiles metadata and use aws
+## Download fastq files metadata and use aws
 First download the metadata of fastq files from google drive in form of csv (fastqfiles/GoogleSheetMetadata.csv).
 
 ```
