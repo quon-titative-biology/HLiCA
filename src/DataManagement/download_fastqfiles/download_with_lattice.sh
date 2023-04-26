@@ -39,9 +39,9 @@ head -n 5 ${GoogleSheetFile}
 # https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html#envvars-set
 module load awscli/2.7.12
 
-export AWS_ACCESS_KEY_ID=AKIAYQQPUH52SXUYGWXA
-export AWS_SECRET_ACCESS_KEY=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
-export AWS_DEFAULT_REGION=us-west-2
+export AWS_ACCESS_KEY_ID=
+export AWS_SECRET_ACCESS_KEY=
+export AWS_DEFAULT_REGION=
 
 # Verify accesss
 aws configure list
