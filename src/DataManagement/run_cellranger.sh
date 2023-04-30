@@ -17,6 +17,7 @@ mkdir -p $OUT_DIR
 # Set path to dataset specific metadata file
 METADATA_SAMPLE_DIR="fastqfiles/Gruen/GoogleSheetMetadata_sample.csv"
 METADATA_SAMPLE_DIR="fastqfiles/Henderson/GoogleSheetMetadata_sample.csv"
+METADATA_SAMPLE_DIR="fastqfiles/Guiliams/GoogleSheetMetadata_sample.csv"
 
 dos2unix $METADATA_SAMPLE_DIR
 
@@ -36,8 +37,6 @@ while IFS=, read -r s3_uri sample FASTQS_DIR FILE_DIR rest; do
   OUT_DIR_SAMPLE="$OUT_DIR/$FASTQS_DIR"
   mkdir -p $OUT_DIR_SAMPLE
 
-  ls "${OUT_DIR_SAMPLE}/${sample}/outs/filtered_feature_bc_matrix.h5"
-
   if [ -f "${OUT_DIR_SAMPLE}/${sample}/outs/filtered_feature_bc_matrix.h5" ]
 
   then
@@ -45,6 +44,8 @@ while IFS=, read -r s3_uri sample FASTQS_DIR FILE_DIR rest; do
 
   else
     echo 'matrix does not exist, align'
+
+    ls "fastqfiles/${FASTQS_DIR}"
 
     time cellranger count --id="${sample}" \
                           --transcriptome=${transcriptome} \

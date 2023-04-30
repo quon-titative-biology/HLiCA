@@ -8,34 +8,47 @@ import re
 
 import pandas as pd
 
+
+# ==============================================================================
+# Specify metadata directory
+# ==============================================================================
+
 # Set METADATA_DIR
 # METADATA_DIR = "fastqfiles/GoogleSheetMetadata.csv"
 METADATA_DIR = "fastqfiles/Gruen/GoogleSheetMetadata.csv"
 METADATA_DIR = "fastqfiles/Henderson/GoogleSheetMetadata.csv"
+METADATA_DIR = "fastqfiles/Guiliams/GoogleSheetMetadata.csv"
 
-df_metadata = pd.read_csv(METADATA_DIR)
 
 # ==============================================================================
 # Save metadata per fastq file
 # ==============================================================================
 
+df_metadata = pd.read_csv(METADATA_DIR)
+
 # Set FILE_DIR, the relative path where file is stored
 # 's3://submissions-czi004liv/andrews_2021/SRR7276476/McGilvery_Sonya__TLH_June_29_MissingLibrary_1_CBC03ANXX/SRR7276476_S1_L007_R2_001.fastq.gz
 # 'submissions-czi004liv/andrews_2021/SRR7276476/McGilvery_Sonya__TLH_June_29_MissingLibrary_1_CBC03ANXX/SRR7276476_S1_L007_R2_001.fastq.gz
-pattern = "^s3://"
-col_to_add = df_metadata.s3_uri.map(lambda s: re.sub(pattern,"",s))
+
+if 'FILE_DIR_MODIFIED' in df_metadata.columns:
+
+    col_to_add = df_metadata.FILE_DIR_MODIFIED
+
+else:
+    pattern = "^s3://"
+    col_to_add = df_metadata.s3_uri.map(lambda s: re.sub(pattern,"",s))
+
+    # Modify FILE_DIR to
+    def format_fastq_name(s):
+        d2 = {"R1.fq.gz": "S1_L001_R1_001.fastq.gz",
+              "R2.fq.gz": "S1_L001_R2_001.fastq.gz"}
+        for k,v in d2.items():
+            s = s.replace(k,v)
+        return s
+
+    col_to_add = col_to_add.map(format_fastq_name)
+
 df_metadata.insert(1,'FILE_DIR',col_to_add)
-
-# Modify FILE_DIR to
-def format_fastq_name(s):
-    d2 = {"R1.fq.gz": "S1_L001_R1_001.fastq.gz",
-          "R2.fq.gz": "S1_L001_R2_001.fastq.gz"}
-    for k,v in d2.items():
-        s = s.replace(k,v)
-    return s
-
-df_metadata.FILE_DIR = df_metadata.FILE_DIR.map(format_fastq_name)
-
 
 # Get the fastqs dir, input to cellranger count
 # 'submissions-czi004liv/andrews_2021/SRR7276476/McGilvery_Sonya__TLH_June_29_MissingLibrary_1_CBC03ANXX/SRR7276476_S1_L007_R2_001.fastq.gz
@@ -53,9 +66,11 @@ df_metadata.insert(1,'FASTQS_DIR',col_to_add)
 # .f[a-zA-z]*q.gz$ = .fastq.gz / .fq.gz
 # 'SRR7276476'
 
+#
 pattern = "_S\d+_L\d+_\D\d+_\d+.f[a-zA-z]*q.gz$"
 col_to_add = df_metadata.FILE_DIR.map(lambda s: re.sub(pattern,"",os.path.basename(s)))
 
+#
 pattern = "_S\d+_L\d+_\D\d+_\d+.fq.gz$"
 col_to_add = col_to_add.map(lambda s: re.sub(pattern,"",os.path.basename(s)))
 
