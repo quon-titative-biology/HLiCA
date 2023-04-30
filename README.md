@@ -1,8 +1,9 @@
 # Human Liver Atlas for CZI
 
-Code repository for Human Liver Atlas project.
+This is code repository for integrative analysis of Human Liver Atlas project. We jointly examine human liver datasets from multiple labs to leverage the diversity across multiple populations.
 
-List of sub-project teams
+
+The analysis contains multiple set of analysis as shown below
 * Data management
 * Metadata curation → harmonized metadata
 * Quality control
@@ -13,6 +14,7 @@ List of sub-project teams
 * Disease integration
 
 ## Data management
+This contains pipeline for collecting dataset from multiple sources then uniformly processing them through cell ranger in order to remove potential technical variation occurring from processing pipeline.
 
 ## Metadata curation → harmonized metadata
 
