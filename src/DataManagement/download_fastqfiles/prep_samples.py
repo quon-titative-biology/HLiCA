@@ -18,6 +18,7 @@ import pandas as pd
 METADATA_DIR = "fastqfiles/Gruen/GoogleSheetMetadata.csv"
 METADATA_DIR = "fastqfiles/Henderson/GoogleSheetMetadata.csv"
 METADATA_DIR = "fastqfiles/Guiliams/GoogleSheetMetadata.csv"
+METADATA_DIR = "fastqfiles/Dasgupta/GoogleSheetMetadata.csv"
 
 
 # ==============================================================================
@@ -61,20 +62,20 @@ df_metadata.insert(1,'FASTQS_DIR',col_to_add)
 # 'SRR7276476_S1_L007_R2_001.fastq.gz'
 # _S\d+ = _S1
 # _L\d+ =  _L007
-# _\D\d+ = _R2
+# _(R|I)\d+ = _R2
 # _\d+ = _001
 # .f[a-zA-z]*q.gz$ = .fastq.gz / .fq.gz
 # 'SRR7276476'
 
 #
-pattern = "_S\d+_L\d+_\D\d+_\d+.f[a-zA-z]*q.gz$"
+pattern = "_S\d+_L\d+_(R|I)\d+_\d+.f[a-zA-z]*q.gz$"
 col_to_add = df_metadata.FILE_DIR.map(lambda s: re.sub(pattern,"",os.path.basename(s)))
 
-#
-pattern = "_S\d+_L\d+_\D\d+_\d+.fq.gz$"
+# For Henderson?
+pattern = "_S\d+_L\d+_(R|I)\d+_\d+.fq.gz$"
 col_to_add = col_to_add.map(lambda s: re.sub(pattern,"",os.path.basename(s)))
 
-# col_to_add = df_metadata.FILE_DIR.map(lambda s: "_".join(os.path.basename(s).split("_")[:3]))
+col_to_add = col_to_add.map(lambda s: "_".join(os.path.basename(s).split("_")[:3]))
 df_metadata.insert(1,'SAMPLE',col_to_add)
 
 # Save the file

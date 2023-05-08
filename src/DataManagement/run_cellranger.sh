@@ -18,6 +18,7 @@ mkdir -p $OUT_DIR
 METADATA_SAMPLE_DIR="fastqfiles/Gruen/GoogleSheetMetadata_sample.csv"
 METADATA_SAMPLE_DIR="fastqfiles/Henderson/GoogleSheetMetadata_sample.csv"
 METADATA_SAMPLE_DIR="fastqfiles/Guiliams/GoogleSheetMetadata_sample.csv"
+METADATA_SAMPLE_DIR="fastqfiles/Dasgupta/GoogleSheetMetadata_sample.csv"
 
 dos2unix $METADATA_SAMPLE_DIR
 
@@ -55,21 +56,23 @@ while IFS=, read -r s3_uri sample FASTQS_DIR FILE_DIR rest; do
                           --sample=${sample} \
                           --no-bam
 
+    # Run through job manager
+    # sbatch --partition=${partition} \
+    #        --gres=gpu:1 \
+    #        --time="${time}:00:00" \
+    #        --mem="${mem}G" \
+    #        --error="${OUT_DIR_SAMPLE}/slurm_msg/error_FA.%j.out" \
+    #        --output="${OUT_DIR_SAMPLE}/slurm_msg/output_FA.%j.out" \
+    #        --cpus-per-task="${cpus_per_task}" \
+    #        --ntasks="${ntasks}" \
+    #        alignment/cellranger.sh $sample $transcriptome "fastqfiles/${FASTQS_DIR}" 8 256 ${sample} ${OUT_DIR_SAMPLE}
+
     mv $sample $OUT_DIR_SAMPLE
 
   fi
 
   echo $OUT_DIR_SAMPLE
 
-  # sbatch --partition=${partition} \
-  #        --gres=gpu:1 \
-  #        --time="${time}:00:00" \
-  #        --mem="${mem}G" \
-  #        --error="${OUT_DIR_SAMPLE}/slurm_msg/error_FA.%j.out" \
-  #        --output="${OUT_DIR_SAMPLE}/slurm_msg/output_FA.%j.out" \
-  #        --cpus-per-task="${cpus_per_task}" \
-  #        --ntasks="${ntasks}" \
-  #        alignment/cellranger.sh $sample $transcriptome "fastqfiles/${FASTQS_DIR}" 8 256 ${sample} ${OUT_DIR_SAMPLE}
 
   echo "Alignment finished"
   echo ""
