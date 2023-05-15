@@ -19,6 +19,7 @@ METADATA_SAMPLE_DIR="fastqfiles/Gruen/GoogleSheetMetadata_sample.csv"
 METADATA_SAMPLE_DIR="fastqfiles/Henderson/GoogleSheetMetadata_sample.csv"
 METADATA_SAMPLE_DIR="fastqfiles/Guiliams/GoogleSheetMetadata_sample.csv"
 METADATA_SAMPLE_DIR="fastqfiles/Dasgupta/GoogleSheetMetadata_sample.csv"
+METADATA_SAMPLE_DIR="fastqfiles/Toronto/GoogleSheetMetadata_sample.csv"
 
 dos2unix $METADATA_SAMPLE_DIR
 
