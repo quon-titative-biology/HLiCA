@@ -13,10 +13,11 @@ https://docs.google.com/spreadsheets/d/<KEY>/edit#gid=<GID>
 to
 https://docs.google.com/spreadsheets/d/<KEY>/export?gid=<GID>&format=csv
 
+# Additional reformat/renaming for specific datasets
+Check the additional folder in download_fastqfiles/ that corresponds with a dataset. Some datasets required renaming of the fastqfiles to fit the 10x naming scheme.
+
 # Create additional csv files for running cellranger
 
 ```
 prep_samples.py
 ```
-
-aws s3 cp s3://submissions-czi004liv/scott_2022/SRR17375088/JBO022_R1.fastq.gz .

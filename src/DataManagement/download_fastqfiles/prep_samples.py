@@ -19,6 +19,7 @@ METADATA_DIR = "fastqfiles/Gruen/GoogleSheetMetadata.csv"
 METADATA_DIR = "fastqfiles/Henderson/GoogleSheetMetadata.csv"
 METADATA_DIR = "fastqfiles/Guiliams/GoogleSheetMetadata.csv"
 METADATA_DIR = "fastqfiles/Dasgupta/GoogleSheetMetadata.csv"
+METADATA_DIR = "fastqfiles/Toronto/GoogleSheetMetadata.csv"
 
 
 # ==============================================================================
@@ -32,21 +33,23 @@ df_metadata = pd.read_csv(METADATA_DIR)
 # 'submissions-czi004liv/andrews_2021/SRR7276476/McGilvery_Sonya__TLH_June_29_MissingLibrary_1_CBC03ANXX/SRR7276476_S1_L007_R2_001.fastq.gz
 
 if 'FILE_DIR_MODIFIED' in df_metadata.columns:
-
+#
     col_to_add = df_metadata.FILE_DIR_MODIFIED
-
+#
 else:
     pattern = "^s3://"
     col_to_add = df_metadata.s3_uri.map(lambda s: re.sub(pattern,"",s))
-
+#
     # Modify FILE_DIR to
     def format_fastq_name(s):
         d2 = {"R1.fq.gz": "S1_L001_R1_001.fastq.gz",
-              "R2.fq.gz": "S1_L001_R2_001.fastq.gz"}
+              "R2.fq.gz": "S1_L001_R2_001.fastq.gz",
+              "R1.fastq.gz": "S1_L001_R1_001.fastq.gz",
+              "R2.fastq.gz": "S1_L001_R2_001.fastq.gz"}
         for k,v in d2.items():
             s = s.replace(k,v)
         return s
-
+#
     col_to_add = col_to_add.map(format_fastq_name)
 
 df_metadata.insert(1,'FILE_DIR',col_to_add)
@@ -71,11 +74,7 @@ df_metadata.insert(1,'FASTQS_DIR',col_to_add)
 pattern = "_S\d+_L\d+_(R|I)\d+_\d+.f[a-zA-z]*q.gz$"
 col_to_add = df_metadata.FILE_DIR.map(lambda s: re.sub(pattern,"",os.path.basename(s)))
 
-# For Henderson?
-pattern = "_S\d+_L\d+_(R|I)\d+_\d+.fq.gz$"
-col_to_add = col_to_add.map(lambda s: re.sub(pattern,"",os.path.basename(s)))
-
-col_to_add = col_to_add.map(lambda s: "_".join(os.path.basename(s).split("_")[:3]))
+# col_to_add = col_to_add.map(lambda s: "_".join(os.path.basename(s).split("_")[:3]))
 df_metadata.insert(1,'SAMPLE',col_to_add)
 
 # Save the file
