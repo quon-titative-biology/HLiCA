@@ -17,3 +17,7 @@ This script uses the .csv file create from the previous step to run cellranger a
 ```
 02_cellranger_aggr.sh
 ```
+
+## Manually modify aggr csv for GuilliamsScott
+
+ADT should not be combined with others

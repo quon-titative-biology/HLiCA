@@ -40,8 +40,11 @@ parser.add_argument('--OUT_DIR', type=str, default='',
 # dataset_name = 'Henderson'
 # METADATA_DIR = "fastqfiles/Guiliams/GoogleSheetMetadata_sample.csv"
 # dataset_name = 'GuilliamsScott'
-METADATA_DIR = "fastqfiles/Dasgupta/GoogleSheetMetadata_sample.csv"
-dataset_name = 'DasGupta'
+# METADATA_DIR = "fastqfiles/Dasgupta/GoogleSheetMetadata_sample.csv"
+# dataset_name = 'DasGupta'
+METADATA_DIR = "fastqfiles/Toronto/GoogleSheetMetadata_sample.csv"
+dataset_name = 'Toronto'
+
 
 ALIGNMENT_DIR = "alignment/ref_GRCh38p13_gencode_v42"
 OUT_DIR = os.path.join(ALIGNMENT_DIR,"share_2023_05_13")
@@ -51,13 +54,21 @@ os.makedirs(OUT_DIR,exist_ok=True)
 # Save CSV for cellranger aggr
 # ==============================================================================
 
-df_aggr = pd.read_csv(METADATA_DIR)
+df_meta = pd.read_csv(METADATA_DIR)
 
-df_aggr['molecule_h5'] = ALIGNMENT_DIR + "/" + df_aggr.FASTQS_DIR + '/' + df_aggr.SAMPLE + '/outs/molecule_info.h5'
-df_aggr['sample_id'] = df_aggr.SAMPLE
+df_meta['molecule_h5'] = ALIGNMENT_DIR + "/" + df_meta.FASTQS_DIR + '/' + df_meta.SAMPLE + '/outs/molecule_info.h5'
+df_meta['sample_id'] = df_meta.SAMPLE
 
-df_aggr = df_aggr[df_aggr.molecule_h5.apply(os.path.isfile)]
+df_meta = df_meta[df_meta.molecule_h5.apply(os.path.isfile)]
 
-assert np.all(df_aggr.molecule_h5.apply(os.path.isfile)), 'Not all specified molecule_h5.info does not exist'
+assert np.all(df_meta.molecule_h5.apply(os.path.isfile)), 'Not all specified molecule_h5.info does not exist'
 
-df_aggr.to_csv(os.path.join(OUT_DIR,f'{dataset_name}.csv'),index=False)
+if np.any(df_meta.sample_id.value_counts() > 1):
+    print('non-unique sample_id')
+    sample_id_unique = df_meta.s3_uri.apply(lambda s: s.split('/')[-2]) + df_meta.sample_id
+    df_meta.sample_id = sample_id_unique
+
+df_meta.to_csv(os.path.join(OUT_DIR,f'{dataset_name}.csv'),index=False)
+
+df_aggr = df_meta[['sample_id','molecule_h5']]
+df_aggr.to_csv(os.path.join(OUT_DIR,f'{dataset_name}_aggr.csv'),index=False)

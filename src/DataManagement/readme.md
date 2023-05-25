@@ -70,3 +70,19 @@ _file.csv is metadata per file with updated columns. _sample.csv removes duplica
 ```
 bash run_cellranger.sh
 ```
+
+# Reformat for sharing
+
+Aggregate the results across samples per dataset and create a single h5ad file for sharing.
+
+## 1. Create csv for cellranger aggr function
+
+```
+bash reformat_for_sharing/01_cellranger_aggr_create_csv.py
+```
+
+## 2. Run the cellranger aggr
+
+```
+02_cellranger_aggr.sh
+```
