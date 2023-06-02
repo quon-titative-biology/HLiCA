@@ -25,6 +25,7 @@ if (! (a1 & a2 & a3 & a4 & a5 & a6 & a7 & a8) ) {
 }
 
 script_dir = "LiverMap2.0-master"
+
 source(paste(script_dir, "My_R_Scripts.R", sep="/"));
 source("/cluster/home/tandrews/R-Scripts/Ensembl_Stuff.R"); #Map gene names
 ## Auto Annotation Stuff ##
@@ -94,6 +95,7 @@ option_list <- list(
 OPTS <- parse_args(OptionParser(option_list=option_list))
 print(OPTS)
 
+OPTS$input_dir = 'alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc/share_qc/Toronto/liver_006_NST_0_1_HY2YGCCXYSRR16227559/raw_feature_bc_matrix'
 
 rawdata <- Read10X(data.dir = OPTS$input_dir)
 # Remove rows & columns that are completely zero
@@ -126,6 +128,7 @@ while(inflection == OPTS$min_cells) {
 	inflection <- which(smooth_slope$y == min(smooth_slope$y[OPTS$min_cells:OPTS$max_cells]))
 	spar=spar*0.8
 }
+
 spar = spar/0.8;
 my_inflection <- n_umi_sorted[inflection];
 
@@ -251,7 +254,7 @@ orig.meta.data <- myseur@meta.data;
 
 
 print("Seurat Pipeline")
-run_seurat_pipeline <- function(myseur, out_tag) {
+run_seurat_pipeline <- function(myseur, out_tag, do_annot=False) {
 	# Normalize
 	myseur <- Seurat::NormalizeData(myseur);
 	# Scale
@@ -278,8 +281,9 @@ run_seurat_pipeline <- function(myseur, out_tag) {
 	myseur <- Seurat::CellCycleScoring(myseur, s.features = s.genes, g2m.features=g2m.genes, set.ident=TRUE)
 
 	# AutoAnnotation with scmap
-	myseur <- do_annotation(myseur)
-
+	if (do_annot){
+		myseur <- do_annotation(myseur)
+	}
 
 	print(paste("Clusters:", length(unique(myseur@meta.data$seurat_clusters)), "in", OPTS$out_prefix))
 
@@ -353,6 +357,7 @@ if (!file.exists(paste(OPTS$out_prefix, "EmptyOnly.rds", sep="_"))) {
 	myseur <- readRDS(paste(OPTS$out_prefix, "EmptyOnly.rds", sep="_"));
 	orig.meta.data <- myseur@meta.data;
 }
+
 ############## SoupX ##############
 
 SoupX_outfile <- paste(OPTS$out_prefix, "SoupX.rds", sep="_")

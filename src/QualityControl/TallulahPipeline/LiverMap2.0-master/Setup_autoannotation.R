@@ -2,9 +2,9 @@ require(SingleCellExperiment)
 require(scmap)
 require(SCINA)
 
-source("/cluster/home/tandrews/scripts/LiverMap2.0/My_R_Scripts.R")
-#auto_anno_dir <- "/home/gelder/MacParlandLabData/human/HumanLiver1.0/";
-auto_anno_dir <- "/cluster/projects/macparland/TA/AutoAnnotation"
+# source("/cluster/home/tandrews/scripts/LiverMap2.0/My_R_Scripts.R")
+# auto_anno_dir <- "/home/gelder/MacParlandLabData/human/HumanLiver1.0/";
+# auto_anno_dir <- "/cluster/projects/macparland/TA/AutoAnnotation"
 
 map1_ref <- readRDS(paste(auto_anno_dir,"scmap_reference.rds", sep="/"))
 
