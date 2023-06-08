@@ -14,7 +14,6 @@ import pandas as pd
 # ==============================================================================
 
 # Set METADATA_DIR
-# METADATA_DIR = "fastqfiles/GoogleSheetMetadata.csv"
 METADATA_DIR = "fastqfiles/Gruen/GoogleSheetMetadata.csv"
 METADATA_DIR = "fastqfiles/Henderson/GoogleSheetMetadata.csv"
 METADATA_DIR = "fastqfiles/Guiliams/GoogleSheetMetadata.csv"
