@@ -98,9 +98,9 @@ print(OPTS)
 
 file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc/share_qc',"Toronto","*",'raw_feature_bc_matrix'))
 
-file.names = file.names[-(1:14)]
-file.names = file.names[-(1:6)]
-file.names = file.names[-(1)]
+# file.names = file.names[-(1:14)]
+# file.names = file.names[-(1:6)]
+# file.names = file.names[-(1)]
 
 for (file.name in file.names) {
 
@@ -456,8 +456,15 @@ for (file.name in file.names) {
 
 		useToEst = estimateNonExpressingCells(sc, nonExpressedGeneList = non_expressed_gene_list, clusters=myseur$seurat_clusters)
 		# sc = calculateContaminationFraction(sc, non_expressed_gene_list, useToEst = useToEst, cellSpecificEstimates=TRUE)
-		sc = calculateContaminationFraction(sc, non_expressed_gene_list, useToEst = useToEst, forceAccept=TRUE)
-		quantile(sc$metaData$rho)
+
+		sc <- tryCatch(
+			{
+					sc = calculateContaminationFraction(sc, non_expressed_gene_list, useToEst = useToEst, forceAccept=TRUE)
+			},
+			error = function(e) {
+		      sc = setContaminationFraction(sc,0.1)
+			}
+		)
 
 		# Correcting the expression matrix.
 		out = adjustCounts(sc)
