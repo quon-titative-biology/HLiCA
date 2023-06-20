@@ -79,7 +79,7 @@ run_scmap_seurat <- function(myseur, scmap_ref=map1_ref, return_sce=FALSE) {
 cell_anno_to_cluster_anno <- function(cellids, clusterids) {
   # tab <- table(scmap_annotation$scmap_cluster_labs, mysce$seurat_clusters)
 	tab <- table(cellids, clusterids)
-	clusterlab <-  apply(tab, 2, function(x){rownames(tab)[which(x==max(x))]})
+	clusterlab <-  apply(tab, 2, function(x){rownames(tab)[which(x==max(x))[1]]}) # in case of tie, choose the first one
 	return(data.frame(cluster=colnames(tab), lab=clusterlab));
 }
 

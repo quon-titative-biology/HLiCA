@@ -28,7 +28,7 @@ folder_to_move = ['raw_feature_bc_matrix']
 
 
 for ds_name in datasets:
-    csv_dir = os.path.join(ALIGNMENT_DIR,f'{ds}.csv')
+    csv_dir = os.path.join(ALIGNMENT_DIR,f'{ds_name}.csv')
     DS_DIR = os.path.join(SHARE_DIR,ds_name)
     os.makedirs(DS_DIR,exist_ok=True)
     #
@@ -46,5 +46,5 @@ for ds_name in datasets:
         for file_mv in folder_to_move:
             src  = os.path.join(src_prefix,file_mv)
             dest_folder = os.path.join(dest,file_mv)
-            os.makedirs(dest_folder)
+            os.makedirs(dest_folder,exist_ok=True)
             copy_tree(src,dest_folder)
