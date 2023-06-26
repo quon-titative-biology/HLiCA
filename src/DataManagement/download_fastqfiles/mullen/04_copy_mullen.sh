@@ -23,5 +23,7 @@ aws s3 ls s3://submissions-czi004liv
 aws s3 ls s3://submissions-czi004liv/mullen_2023/6854_1/
 
 src="s3://submissions-czi004liv/mullen_2023"
-dest="alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share/"
+dest="alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share/Mullen/"
+mkdir -p $dest
+
 aws s3 cp $src $dest --recursive

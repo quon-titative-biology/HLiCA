@@ -15,7 +15,10 @@ datasets = ['DasGupta',
             'Gruen',
             'Henderson',
             'GuilliamsScott',
-            'Toronto']
+            'Toronto',
+            'Mullen']
+datasets = ['Mullen']
+
 
 files_to_move = ['raw_feature_bc_matrix.h5',
                  'filtered_feature_bc_matrix.h5',

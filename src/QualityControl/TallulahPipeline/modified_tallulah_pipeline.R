@@ -15,9 +15,12 @@
 #     install.packages("BiocManager")
 #
 # BiocManager::install("DropletUtils")
+# BiocManager::install("scmap")
 #
 # install.packages('SoupX')
 # install.packages('optparse')
+
+
 
 ###### Load Requirements ######
 a1 = suppressPackageStartupMessages(require(methods))
@@ -33,10 +36,11 @@ if (! (a1 & a2 & a3 & a4 & a5 & a6 & a7 & a8) ) {
 	exit()
 }
 
-script_dir = "LiverMap2.0-master"
-annot_script_dir = 'LiverAnnotation-main'
+script_dir = "/share/quonlab/workspaces/czi_liver_atlas/data/LiverNetworkData/LiverMap2.0-master"
+# script_dir = "LiverMap2.0-master"
 
 source(paste(script_dir, "My_R_Scripts.R", sep="/"));
+source(paste(script_dir, "Setup_autoannotation_efficient.R", sep="/"))
 # source("/cluster/home/tandrews/R-Scripts/Ensembl_Stuff.R"); #Map gene names
 ## Auto Annotation Stuff ##
 # Colour Scheme #
@@ -107,11 +111,23 @@ print(OPTS)
 
 # file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc2/share_qc',"GuilliamsScott","*",'raw_feature_bc_matrix'))
 # file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc2/share_qc',"Gruen","*",'raw_feature_bc_matrix'))
-file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc2/share_qc',"*","*",'raw_feature_bc_matrix'))
+# file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc2/share_qc',"*","*",'raw_feature_bc_matrix'))
+# file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc3/share_qc',"Gruen","*",'raw_feature_bc_matrix'))
+# file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc3/share_qc',"Gruen","*",'raw_feature_bc_matrix'))
+
+# For esb
+file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"Henderson","*",'raw_feature_bc_matrix'))
+file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"Gruen","*",'raw_feature_bc_matrix'))
+file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"GuilliamsScott","*",'raw_feature_bc_matrix'))
+file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"Toronto","*",'raw_feature_bc_matrix'))
+file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"DasGupta","*",'raw_feature_bc_matrix'))
+file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"Mullen","*",'raw_feature_bc_matrix'))
 
 # file.names = file.names[-(1:14)]
 # file.names = file.names[-(1:6)]
 # file.names = file.names[-(1)]
+
+OPTS$cells = 0
 
 for (file.name in file.names) {
 
@@ -119,6 +135,7 @@ for (file.name in file.names) {
 
 	OPTS$input_dir = file.name
 	OPTS$out_prefix = file.path(file.name,'qc_output','Cleaned_output')
+	dir.create(OPTS$out_prefix, recursive = TRUE)
 
 	csv.status.file=paste(OPTS$out_prefix, "status.csv", sep="_")
 
@@ -128,13 +145,14 @@ for (file.name in file.names) {
 
 			stats.to.save=c()
 
-			dir.create(file.path(file.name,'qc_output'), showWarnings = FALSE)
-
 			rawdata <- Read10X(data.dir = OPTS$input_dir)
 			stats.to.save[['10X_raw_dim']] = dim(rawdata)
 			# Remove rows & columns that are completely zero
 			rawdata <- rawdata[,Matrix::colSums(rawdata) > OPTS$trim]
-			rawdata <- rawdata[Matrix::rowSums(rawdata) > 0,]
+			if (OPTS$cells > 0) {
+					# only remove genes if OPTS$cells is not 0
+					rawdata <- rawdata[Matrix::rowSums(rawdata) > 0,]
+			}
 			stats.to.save[['10X_filtered_dim']] = dim(rawdata)
 			print(paste("Raw Data:", dim(rawdata), "input",c("gene","cells"), "of", OPTS$out_prefix))
 
@@ -159,6 +177,7 @@ for (file.name in file.names) {
 			slope <- diff(log(n_umi_sorted))/diff(log(rank_sorted))
 			spar = 0.5
 			inflection = OPTS$min_cells
+
 			while(inflection == OPTS$min_cells) {
 				smooth_slope <- smooth.spline(slope, spar=spar) # changed to 0.4 from 0.5 on 19Aug202
 				inflection <- which(smooth_slope$y == min(smooth_slope$y[OPTS$min_cells:OPTS$max_cells]))
@@ -264,6 +283,7 @@ for (file.name in file.names) {
 						raw_genes <- rownames(rawdata) # fix gene ID to remove hypens like Seurat does.
 						raw_genes <- sub("_","-", raw_genes)
 						rownames(rawdata) <- raw_genes
+
 						if (OPTS$organism == "Mouse") {
 							hgenes <- General_Map(genes, in.org="Mmus", out.org="Hsap", in.name="symbol", out.name="symbol")
 							myseur <- rename_genes(myseur, hgenes, genes)
@@ -287,8 +307,8 @@ for (file.name in file.names) {
 						myseur@meta.data$cell_ID <- paste(myseur@meta.data$donor, myseur@meta.data$cell_barcode, sep="_");
 
 						orig.meta.data <- myseur@meta.data;
-						status = data.frame(emptydrops='Complete')
-						return(status)
+						status <- data.frame(emptydrops='Complete')
+						# return(status)
 
 					},
 						error=function(e){
@@ -518,9 +538,7 @@ for (file.name in file.names) {
 
 					# status = data.frame(emptydrops='Every UMI count insufficient')
 					# write.table(status,csv.status.file,sep=',')
-					status = data.frame(soupx='Complete')
-
-					return(status)
+					status <- data.frame(soupx='Complete')
 
 					},
 					error=function(e){

@@ -12,11 +12,9 @@ mkdir -p $dest
 
 scp -r $src $dest
 
-
-
 #
 src="yonchoi@esb.genomecenter.ucdavis.edu:/share/quonlab/workspaces/czi_liver_atlas/data/LiverNetworkData/alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc"
-dest="/group/gquongrp/collaborations/HLiCA/alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc2"
+dest="/group/gquongrp/collaborations/HLiCA/alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc3"
 
 mkdir -p $dest
 

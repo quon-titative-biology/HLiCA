@@ -12,6 +12,9 @@ conda create -n HLiCA -c conda-forge r-base=4.2.2 -y
 conda activate R
 mamba install -c conda-forge r-essentials
 
+mamba search r-seurat --channel conda-forge
+mamba install r-seurat --channel conda-forge
+
 ### Open R and install BiocManager and select a mirror to install the packages from. Use the following
 install.packages("remotes")
 if (!requireNamespace("BiocManager", quietly = TRUE))
