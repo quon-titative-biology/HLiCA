@@ -18,7 +18,7 @@ datasets = ['DasGupta',
             'Toronto',
             'Mullen']
 
-datasets = ['Mullen']
+datasets = ['Henderson']
 
 
 files_to_move = ['raw_feature_bc_matrix.h5',
@@ -26,10 +26,12 @@ files_to_move = ['raw_feature_bc_matrix.h5',
                  'metrics_summary.csv',
                  'web_summary.html']
 
-files_to_move = []
+files_to_move = ['metrics_summary.csv',
+                 'web_summary.html']
+
 
 folder_to_move = ['raw_feature_bc_matrix']
-
+# folder_to_move = []
 
 for ds_name in datasets:
     csv_dir = os.path.join(ALIGNMENT_DIR,f'{ds_name}.csv')

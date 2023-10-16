@@ -111,7 +111,7 @@ print(OPTS)
 
 # file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc2/share_qc',"GuilliamsScott","*",'raw_feature_bc_matrix'))
 # file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc2/share_qc',"Gruen","*",'raw_feature_bc_matrix'))
-# file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc2/share_qc',"*","*",'raw_feature_bc_matrix'))
+# file.names = Sys.glob(file.path('alignment /ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc2/share_qc',"*","*",'raw_feature_bc_matrix'))
 # file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc3/share_qc',"Gruen","*",'raw_feature_bc_matrix'))
 # file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc3/share_qc',"Gruen","*",'raw_feature_bc_matrix'))
 
@@ -120,14 +120,20 @@ file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_
 file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"Gruen","*",'raw_feature_bc_matrix'))
 file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"GuilliamsScott","*",'raw_feature_bc_matrix'))
 file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"Toronto","*",'raw_feature_bc_matrix'))
-file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"DasGupta","*",'raw_feature_bc_matrix'))
 file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"Mullen","*",'raw_feature_bc_matrix'))
+file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"DasGupta","*",'raw_feature_bc_matrix'))
+# file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"Henderson","*",'raw_feature_bc_matrix'))
 
 # file.names = file.names[-(1:14)]
 # file.names = file.names[-(1:6)]
 # file.names = file.names[-(1)]
 
+# Don't filter out gene to make sure all datasets have same set of genes
 OPTS$cells = 0
+
+file.names = rev(file.names)
+
+file.names = file.names[-(1:2)]
 
 for (file.name in file.names) {
 
@@ -140,7 +146,7 @@ for (file.name in file.names) {
 	csv.status.file=paste(OPTS$out_prefix, "status.csv", sep="_")
 
 	qc_not_finished = !(file.exists(paste(OPTS$out_prefix, "SoupX.rds", sep="_")) | file.exists(csv.status.file))
-
+	qc_not_finished = TRUE
 		if (qc_not_finished) {
 
 			stats.to.save=c()

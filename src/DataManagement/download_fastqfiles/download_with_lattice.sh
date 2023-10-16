@@ -13,9 +13,15 @@
 # Download metadata from google sheet
 # ==============================================================================
 
+# Set
+# fastqfiles: directory to store fastqfiles
 fastqfiles="fastqfiles" # relative
-fastqfiles="/share/quonlab/workspaces/czi_liver_atlas/data/LiverNetworkData/fastqfiles" #absolute
+# fastqfiles="/share/quonlab/workspaces/czi_liver_atlas/data/LiverNetworkData/fastqfiles" #absolute
 
+# Set
+# Groupname: output path
+# googlesheet_link: url
+# GoogleSheetFile: output directory/name
 GroupName="${fastqfiles}/Henderson"
 googlesheet_link="https://docs.google.com/spreadsheets/d/1l7XM7wxihdm5JqSRj0Il5piNMGoiINk0KpqyLf2U8Wo/export?gid=1189575288&format=csv"
 GoogleSheetFile="$GroupName/GoogleSheetMetadata.csv"
@@ -32,7 +38,12 @@ GroupName="${fastqfiles}/Toronto"
 googlesheet_link="https://docs.google.com/spreadsheets/d/1l7XM7wxihdm5JqSRj0Il5piNMGoiINk0KpqyLf2U8Wo/export?gid=0&format=csv"
 GoogleSheetFile="$GroupName/GoogleSheetMetadata.csv"
 
-# Set directories
+GroupName="${fastqfiles}/DasGupta"
+googlesheet_link="https://docs.google.com/spreadsheets/d/1l7XM7wxihdm5JqSRj0Il5piNMGoiINk0KpqyLf2U8Wo/export?gid=872171588&format=csv"
+GoogleSheetFile="$GroupName/GoogleSheetMetadata.csv"
+# For DasGupta run modify_filename.py before downloading
+
+# Create directories
 mkdir -p $GroupName
 
 # metadata file
@@ -43,6 +54,9 @@ head -n 5 ${GoogleSheetFile}
 # ==============================================================================
 # Download fastqfiles
 # ==============================================================================
+
+kinit -l 28d
+aklog
 
 #### Verifyy access to aws
 # https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html#envvars-set
@@ -62,10 +76,10 @@ aws sts get-caller-identity
 aws s3 ls s3://submissions-czi004liv
 
 # Download all the files from GoogleSheetMetadata.csv
-# This assumes that the s3_uri is located in the first column and csv has a header
-
+# This assumes that the s3_uri is located in the first column and csv has a heade
 dos2unix $GoogleSheetFile
 
+# Skip first line (header) then download fastqfiles
 sed 1d ${GoogleSheetFile} |
 while IFS=, read -r s3_uri rest; do
 
@@ -90,7 +104,6 @@ while IFS=, read -r s3_uri rest; do
       echo "$s3_uri"
       aws s3 cp "$s3_uri" "$download_dir"
   fi
-
 
   echo "Finished"
   echo ""

@@ -21,3 +21,10 @@ Check the additional folder in download_fastqfiles/ that corresponds with a data
 ```
 prep_samples.py
 ```
+
+
+
+
+
+# Metadata sheets check
+metadata_stats.py

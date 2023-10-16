@@ -17,9 +17,9 @@ mkdir -p $OUT_DIR
 # Set path to dataset specific metadata file
 METADATA_SAMPLE_DIR="fastqfiles/Gruen/GoogleSheetMetadata_sample.csv"
 METADATA_SAMPLE_DIR="fastqfiles/Henderson/GoogleSheetMetadata_sample.csv"
-METADATA_SAMPLE_DIR="fastqfiles/Guiliams/GoogleSheetMetadata_sample.csv"
-METADATA_SAMPLE_DIR="fastqfiles/Dasgupta/GoogleSheetMetadata_sample.csv"
-METADATA_SAMPLE_DIR="fastqfiles/Toronto/GoogleSheetMetadata_sample.csv"
+# METADATA_SAMPLE_DIR="fastqfiles/Guiliams/GoogleSheetMetadata_sample.csv"
+# METADATA_SAMPLE_DIR="fastqfiles/DasGupta/GoogleSheetMetadata_sample.csv"
+# METADATA_SAMPLE_DIR="fastqfiles/Toronto/GoogleSheetMetadata_sample.csv"
 
 dos2unix $METADATA_SAMPLE_DIR
 
@@ -49,13 +49,13 @@ while IFS=, read -r s3_uri sample FASTQS_DIR FILE_DIR rest; do
 
     ls "fastqfiles/${FASTQS_DIR}"
 
-    time cellranger count --id="${sample}" \
-                          --transcriptome=${transcriptome} \
-                          --fastqs="fastqfiles/${FASTQS_DIR}" \
-                          --localcores=32 \
-                          --localmem=256 \
-                          --sample=${sample} \
-                          --no-bam
+    # time cellranger count --id="${sample}" \
+    #                       --transcriptome=${transcriptome} \
+    #                       --fastqs="fastqfiles/${FASTQS_DIR}" \
+    #                       --localcores=32 \
+    #                       --localmem=256 \
+    #                       --sample=${sample} \
+    #                       --no-bam
 
     # Run through job manager
     # sbatch --partition=${partition} \

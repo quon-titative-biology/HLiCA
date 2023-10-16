@@ -1,13 +1,15 @@
 library(Seurat)
 
-dataset='Toronto'
+base='alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc'
 
-for (dataset in c('DasGupta','Gruen','Henderson','GuilliamsScott')){
+# for (dataset in c('DasGupta','Gruen','Henderson','GuilliamsScott','Toronto','Mullen')){
+for (dataset in c('DasGupta')){
+# for (dataset in c('Henderson')){
 
-  file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc2/share_qc',dataset,"*",'raw_feature_bc_matrix/qc_output/Cleaned_output_SoupX.rds'))
+  file.names = Sys.glob(file.path(base,dataset,"*",'raw_feature_bc_matrix/qc_output/Cleaned_output_SoupX.rds'))
   # file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc/share_qc',"Toronto","*",'raw_feature_bc_matrix/qc_output/Cleaned_output_SoupX.rds'))
   file.names = sapply(file.names, function(s){dirname(s)})
-  # file.names = file.names[c(1,3,7)]
+  # file.names = file.names[c(1,2)]
 
   i=1
 
@@ -22,7 +24,7 @@ for (dataset in c('DasGupta','Gruen','Henderson','GuilliamsScott')){
     rawdata <- Read10X(data.dir = dirname(file.name))
     myseur.soup = readRDS(file.path(file.name,'Cleaned_output_SoupX.rds'))
 
-    myseur_list[[i]] = myseur.soup
+    # myseur_list[[i]] = myseur.soup
 
     empty.sizes[[i]] = c(dim(rawdata),dim(myseur),dim(myseur.soup))
     names(empty.sizes[[i]]) = c('Raw # gene', 'Raw # cell', 'EmptyDrop # gene', 'EmptyDrop # cell', 'SoupX # gene','SoupX # cell')
@@ -40,10 +42,15 @@ for (dataset in c('DasGupta','Gruen','Henderson','GuilliamsScott')){
   df.stat = data.frame(empty.sizes)
   colnames(df.stat) = cell.ids
 
-  csv.file = file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc2/share_qc',dataset,'stats.csv')
+  csv.file = file.path(base,dataset,'stats.csv')
   write.table(df.stat, file=csv.file,sep=',')
 
 }
+
+# ==============================================================================
+#
+# ==============================================================================
+
 # Merge and plot
 myseur.combined = merge(myseur_list[[1]], myseur_list[-1], add.cell.ids = cell.ids, merge.data = TRUE)
 

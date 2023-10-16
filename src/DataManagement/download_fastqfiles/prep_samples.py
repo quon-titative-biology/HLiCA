@@ -16,9 +16,9 @@ import pandas as pd
 # Set METADATA_DIR
 METADATA_DIR = "fastqfiles/Gruen/GoogleSheetMetadata.csv"
 METADATA_DIR = "fastqfiles/Henderson/GoogleSheetMetadata.csv"
-METADATA_DIR = "fastqfiles/Guiliams/GoogleSheetMetadata.csv"
-METADATA_DIR = "fastqfiles/Dasgupta/GoogleSheetMetadata.csv"
-METADATA_DIR = "fastqfiles/Toronto/GoogleSheetMetadata.csv"
+# METADATA_DIR = "fastqfiles/Guiliams/GoogleSheetMetadata.csv"
+# METADATA_DIR = "fastqfiles/DasGupta/GoogleSheetMetadata.csv"
+# METADATA_DIR = "fastqfiles/Toronto/GoogleSheetMetadata.csv"
 
 
 # ==============================================================================
@@ -34,6 +34,8 @@ df_metadata = pd.read_csv(METADATA_DIR)
 if 'FILE_DIR_MODIFIED' in df_metadata.columns:
 #
     col_to_add = df_metadata.FILE_DIR_MODIFIED
+    pattern = "^s3://"
+    col_to_add = col_to_add.map(lambda s: re.sub(pattern,"",s))
 #
 else:
     pattern = "^s3://"
@@ -69,12 +71,22 @@ df_metadata.insert(1,'FASTQS_DIR',col_to_add)
 # .f[a-zA-z]*q.gz$ = .fastq.gz / .fq.gz
 # 'SRR7276476'
 
-#
 pattern = "_S\d+_L\d+_(R|I)\d+_\d+.f[a-zA-z]*q.gz$"
 col_to_add = df_metadata.FILE_DIR.map(lambda s: re.sub(pattern,"",os.path.basename(s)))
 
 # col_to_add = col_to_add.map(lambda s: "_".join(os.path.basename(s).split("_")[:3]))
+
+if 'SAMPLE' in df_metadata.columns:
+    SAMPLE_OLD = df_metadata['SAMPLE']
+    df_metadata['SAMPLE_OLD'] = SAMPLE_OLD
+    df_metadata = df_metadata.drop(columns='SAMPLE')
+
 df_metadata.insert(1,'SAMPLE',col_to_add)
+
+# Confirm the samples line up with library_alias
+df_metadata.SAMPLE.unique()
+df_metadata.library_alias
+df_metadata.groupby(['library_alias','SAMPLE']).size()
 
 # Save the file
 filedir = os.path.splitext(METADATA_DIR)[0]+'_file.csv'
@@ -88,6 +100,8 @@ df_metadata.to_csv(filedir,index=False)
 df_metadata_sample = df_metadata.drop_duplicates(['FASTQS_DIR','SAMPLE'])
 df_metadata_sample.value_counts(['SAMPLE','FASTQS_DIR'])
 df_metadata.value_counts(['SAMPLE','FASTQS_DIR'])
+
+df_metadata_sample
 
 filedir = os.path.splitext(METADATA_DIR)[0]+'_sample.csv'
 df_metadata_sample.to_csv(filedir,index=False)
