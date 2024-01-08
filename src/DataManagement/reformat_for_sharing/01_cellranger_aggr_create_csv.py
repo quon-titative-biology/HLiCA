@@ -44,7 +44,10 @@ parser.add_argument('--OUT_DIR', type=str, default='',
 # dataset_name = 'DasGupta'
 METADATA_DIR = "fastqfiles/Toronto/GoogleSheetMetadata_sample.csv"
 dataset_name = 'Toronto'
-
+METADATA_DIR = "fastqfiles/andrews/GoogleSheetMetadata_sample.csv"
+dataset_name = 'andrews'
+# METADATA_DIR = "fastqfiles/Toronto/GoogleSheetMetadata_sample.csv"
+# dataset_name = 'Toronto'
 
 ALIGNMENT_DIR = "alignment/ref_GRCh38p13_gencode_v42"
 OUT_DIR = os.path.join(ALIGNMENT_DIR,"share_2023_05_13")

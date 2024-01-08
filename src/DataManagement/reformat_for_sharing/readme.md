@@ -15,7 +15,7 @@ Create {dataset_name}.csv that contains sample_id and molecule_h5 columns for ce
 This script uses the .csv file create from the previous step to run cellranger aggr function.
 
 ```
-02_cellranger_aggr.sh
+bash 02_cellranger_aggr.sh
 ```
 
 ## Manually modify aggr csv for GuilliamsScott

@@ -25,7 +25,6 @@ df_qc = df_qc.fillna('NaN')
 
 df_qc.to_csv('Combined_metadata_qconly.csv')
 
-
 df_qc.groupby(['Dataset','assay']).size()
 df_qc.Dataset.value_counts()
 df_qc.assay.value_counts()

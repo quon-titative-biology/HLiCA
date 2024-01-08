@@ -19,8 +19,6 @@ parser.add_argument('--ALIGNMENT_DIR', type=str, default='',
 parser.add_argument('--OUT_DIR', type=str, default='',
                     help='Directory where the combined read in h5 form will be stored')
 
-
-
 # ==============================================================================
 # Set directory
 # ==============================================================================
@@ -33,6 +31,10 @@ METADATA_DIR = "fastqfiles/Guiliams/GoogleSheetMetadata_sample.csv"
 dataset_name = 'GuilliamsScott'
 METADATA_DIR = "fastqfiles/Dasgupta/GoogleSheetMetadata_sample.csv"
 dataset_name = 'DasGupta'
+METADATA_DIR = "fastqfiles/andrews/GoogleSheetMetadata_sample.csv"
+dataset_name = 'andrews'
+METADATA_DIR = "fastqfiles/macparland/GoogleSheetMetadata_sample.csv"
+dataset_name = 'macparland'
 
 ALIGNMENT_DIR = "alignment/ref_GRCh38p13_gencode_v42"
 OUT_DIR = os.path.join(ALIGNMENT_DIR,"share_2023_05_13")

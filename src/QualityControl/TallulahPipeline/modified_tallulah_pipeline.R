@@ -36,17 +36,18 @@ if (! (a1 & a2 & a3 & a4 & a5 & a6 & a7 & a8) ) {
 	exit()
 }
 
-script_dir = "/share/quonlab/workspaces/czi_liver_atlas/data/LiverNetworkData/LiverMap2.0-master"
+script_dir = "/share/quonlab/HLiCA/czi_liver_atlas/data/LiverNetworkData/LiverMap2.0-master"
 # script_dir = "LiverMap2.0-master"
 
 source(paste(script_dir, "My_R_Scripts.R", sep="/"));
 source(paste(script_dir, "Setup_autoannotation_efficient.R", sep="/"))
+# LiverMap2.0-master/Map1_scmap_minimal_reference.rds
 # source("/cluster/home/tandrews/R-Scripts/Ensembl_Stuff.R"); #Map gene names
 ## Auto Annotation Stuff ##
 # Colour Scheme #
 source(paste(script_dir, "Colour_Scheme.R", sep="/"))
 
-source(paste(script_dir, "Setup_autoannotation_efficient.R", sep="/"))
+# source(paste(script_dir, "Setup_autoannotation_efficient.R", sep="/"))
 
 do_annotation <- function(myseur) {
 
@@ -122,18 +123,17 @@ file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_
 file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"Toronto","*",'raw_feature_bc_matrix'))
 file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"Mullen","*",'raw_feature_bc_matrix'))
 file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"DasGupta","*",'raw_feature_bc_matrix'))
-# file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"Henderson","*",'raw_feature_bc_matrix'))
+file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"andrews","*",'raw_feature_bc_matrix'))
+file.names = Sys.glob(file.path('alignment/ref_GRCh38p13_gencode_v42/share_2023_05_13/share_qc',"macparland","*",'raw_feature_bc_matrix'))
 
 # file.names = file.names[-(1:14)]
 # file.names = file.names[-(1:6)]
 # file.names = file.names[-(1)]
+# file.names = file.names[[1]]
+# file.names = rev(file.names)
 
 # Don't filter out gene to make sure all datasets have same set of genes
 OPTS$cells = 0
-
-file.names = rev(file.names)
-
-file.names = file.names[-(1:2)]
 
 for (file.name in file.names) {
 
@@ -340,6 +340,7 @@ for (file.name in file.names) {
 				hvgs <- VariableFeatures(myseur); hvgs <- hvgs[!grepl("^Mt-", hvgs)]; # added 22Sept2020
 				hvgs <- VariableFeatures(myseur); hvgs <- hvgs[!grepl("^mt-", hvgs)]; # added 22Sept2020
 				VariableFeatures(myseur) <- hvgs;
+
 				# PCA
 				myseur <- Seurat::RunPCA(myseur, features = VariableFeatures(object = myseur))
 
@@ -429,8 +430,9 @@ for (file.name in file.names) {
 						{
 
 					if (!file.exists(paste(OPTS$out_prefix, "EmptyOnly.rds", sep="_"))) {
+						print('run_seurat_pipeline on EmptyOnly starting')
 						myseur <- run_seurat_pipeline(myseur, "initSeurat");
-
+						print('run_seurat_pipeline on EmptyOnly succesful')
 						saveRDS(myseur, paste(OPTS$out_prefix, "EmptyOnly.rds", sep="_"));
 
 					} else {
@@ -444,7 +446,7 @@ for (file.name in file.names) {
 					# SoupX
 					require("Seurat")
 					set.seed(4671)
-
+					print('starting SoupX')
 					# Create SoupX object
 					#my_seur_genes <- unlist(myseur[["RNA"]][["origID"]])
 					#my_seur_genes <- unlist(myseur@misc[["orig_gene_ID"]])
@@ -539,8 +541,10 @@ for (file.name in file.names) {
 
 					saveRDS(soup_seurat, paste(OPTS$out_prefix, "SoupX_prepipeline.rds", sep="_"))
 
+					print('run_seurat_pipeline on SoupX starting')
 					soup_seurat <- run_seurat_pipeline(soup_seurat, "SoupSeurat");
 					saveRDS(soup_seurat, paste(OPTS$out_prefix, "SoupX.rds", sep="_"))
+					print('run_seurat_pipeline on SoupX completed')
 
 					# status = data.frame(emptydrops='Every UMI count insufficient')
 					# write.table(status,csv.status.file,sep=',')
