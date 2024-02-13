@@ -21,7 +21,7 @@ mkdir -p $OUT_DIR
 # METADATA_SAMPLE_DIR="fastqfiles/DasGupta/GoogleSheetMetadata_sample.csv"
 # METADATA_SAMPLE_DIR="fastqfiles/Toronto/GoogleSheetMetadata_sample.csv"
 # METADATA_SAMPLE_DIR="fastqfiles/macparland/GoogleSheetMetadata_sample.csv"
-METADATA_SAMPLE_DIR="fastqfiles/andrews/GoogleSheetMetadata_sample.csv"
+# METADATA_SAMPLE_DIR="fastqfiles/andrews/GoogleSheetMetadata_sample.csv"
 
 dos2unix $METADATA_SAMPLE_DIR
 
