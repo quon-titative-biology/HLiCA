@@ -15,48 +15,43 @@ OUT_DIR="alignment/ref_${ref}"
 mkdir -p $OUT_DIR
 
 # Set path to dataset specific metadata file
-METADATA_SAMPLE_DIR="fastqfiles/Gruen/GoogleSheetMetadata_sample.csv"
-METADATA_SAMPLE_DIR="fastqfiles/Henderson/GoogleSheetMetadata_sample.csv"
+# METADATA_SAMPLE_DIR="fastqfiles/Gruen/GoogleSheetMetadata_sample.csv"
+# METADATA_SAMPLE_DIR="fastqfiles/Henderson/GoogleSheetMetadata_sample.csv"
 # METADATA_SAMPLE_DIR="fastqfiles/Guiliams/GoogleSheetMetadata_sample.csv"
 # METADATA_SAMPLE_DIR="fastqfiles/DasGupta/GoogleSheetMetadata_sample.csv"
 # METADATA_SAMPLE_DIR="fastqfiles/Toronto/GoogleSheetMetadata_sample.csv"
+# METADATA_SAMPLE_DIR="fastqfiles/macparland/GoogleSheetMetadata_sample.csv"
+METADATA_SAMPLE_DIR="fastqfiles/andrews/GoogleSheetMetadata_sample.csv"
 
 dos2unix $METADATA_SAMPLE_DIR
 
-mem="128" #GB
-time="2" #hours
-ntasks="1"
-cpus_per_task="16"
-partition="production"
+# mem="128" #GB
+# time="24" #hours
+# ntasks="1"
+# cpus_per_task="16"
+# partition="production"
 
 sed 1d $METADATA_SAMPLE_DIR |
 while IFS=, read -r s3_uri sample FASTQS_DIR FILE_DIR rest; do
-
   echo "Starting alignment: sample info:"
   echo $sample
   echo $FASTQS_DIR
-
   OUT_DIR_SAMPLE="$OUT_DIR/$FASTQS_DIR"
   mkdir -p $OUT_DIR_SAMPLE
-
   if [ -f "${OUT_DIR_SAMPLE}/${sample}/outs/filtered_feature_bc_matrix.h5" ]
-
   then
     echo 'matrix exists'
-
   else
     echo 'matrix does not exist, align'
-
     ls "fastqfiles/${FASTQS_DIR}"
-
-    # time cellranger count --id="${sample}" \
-    #                       --transcriptome=${transcriptome} \
-    #                       --fastqs="fastqfiles/${FASTQS_DIR}" \
-    #                       --localcores=32 \
-    #                       --localmem=256 \
-    #                       --sample=${sample} \
-    #                       --no-bam
-
+    time cellranger count --id="${sample}" \
+                          --transcriptome=${transcriptome} \
+                          --fastqs="fastqfiles/${FASTQS_DIR}" \
+                          --localcores=40 \
+                          --localmem=320 \
+                          --sample=${sample} \
+                          --no-bam
+                          --nosecondary
     # Run through job manager
     # sbatch --partition=${partition} \
     #        --gres=gpu:1 \
@@ -67,17 +62,10 @@ while IFS=, read -r s3_uri sample FASTQS_DIR FILE_DIR rest; do
     #        --cpus-per-task="${cpus_per_task}" \
     #        --ntasks="${ntasks}" \
     #        alignment/cellranger.sh $sample $transcriptome "fastqfiles/${FASTQS_DIR}" 8 256 ${sample} ${OUT_DIR_SAMPLE}
-
     mv $sample $OUT_DIR_SAMPLE
-
   fi
-
   echo $OUT_DIR_SAMPLE
-
-
   echo "Alignment finished"
   echo ""
-
   sleep 0.1
-
 done
