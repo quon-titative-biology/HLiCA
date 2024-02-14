@@ -5,6 +5,7 @@ Feb 14 by Hongru
 - move the C41/P3TLH from Andrews2022/Toronto_2 back to MacParland2018/Toronto_1 study
 - covariates <- c('STUDY', 'suspension_type','assay', 'donor_uuid', 'library_alias')
 
+```
 #                         sample sequencing_run donor library   cell
 # Mullen                      23             23    23      23 137360
 # DasGupta                    23             23    23      23  49921
@@ -17,3 +18,4 @@ Feb 14 by Hongru
 
 # sample sequencing_run          donor        library           cell
 #    156            156            115            156         644680
+```
