@@ -2,8 +2,15 @@ Feb 14 by Hongru
 
 - remove blood cells from DasGupta study
 - remove the duplicated sequencing runs (5 runs) from Andrews 2024 study (confirmed the sequencing run names with Rachel)
+  ```
+    # C46_SC_3pr_HLV55DRXX_bamtofastq
+    # C61_SC_3pr_HTGHKDMXX_bamtofastq
+    # C63_SC_3pr_HLV55DRXX_bamtofastq
+    # C63_SC_5pr_HLV55DRXX_bamtofastq
+    # C68_SC_3pr_CE0GVANXX_bamtofastq
+  ```
 - move the C41/P3TLH from Andrews2022/Toronto_2 back to MacParland2018/Toronto_1 study
-- covariates <- c('STUDY', 'suspension_type','assay', 'donor_uuid', 'library_alias')
+- `covariates <- c('STUDY', 'suspension_type','assay', 'donor_uuid', 'library_alias')`
 
 ```
 #                         sample sequencing_run donor library   cell
