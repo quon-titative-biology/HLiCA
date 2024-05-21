@@ -1,0 +1,30 @@
+
+
+h9 {
+  font-size: 40px;
+}
+
+h1 { /* Header 1 */
+  font-size: 34px;
+}
+h2 { /* Header 2 */
+    font-size: 30px;
+}
+h3 { /* Header 3 */
+  font-size: 28px;
+}
+h4 { /* Header 4 */
+  font-size: 26px;
+}
+h5 { /* Header 5 */
+  font-size: 24px;
+}
+h6 { /* Header 6 */
+  font-size: 22px;
+}
+h7 { /* Header 6 */
+  font-size: 20px;
+  font-style: italic;
+}
+
+

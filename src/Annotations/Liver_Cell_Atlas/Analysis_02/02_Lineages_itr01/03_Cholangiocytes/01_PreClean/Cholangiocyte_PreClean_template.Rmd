@@ -1,0 +1,688 @@
+---
+params:
+  title: "Data Presentation"
+  obj_path: "PATH"
+  results_path: "PATH"
+  final_cluster_param: "seurat_clusters"
+title: <h9 >`r params$title`</h9>
+author: <h7 >NAME</h7>   
+date: <h7 >`r format(Sys.time(), '%d/%m/%Y')`</h7>
+output:
+  html_document:
+    highlight: kate
+    toc: yes
+    toc_float: yes
+    toc_depth: 6
+    code_folding: hide
+    theme: cosmo
+    df_print: paged
+    code_download: TRUE
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{css, echo=FALSE}
+h9 {
+  font-size: 40px;
+}
+
+h1 { /* Header 1 */
+  font-size: 34px;
+}
+h2 { /* Header 2 */
+    font-size: 30px;
+}
+h3 { /* Header 3 */
+  font-size: 28px;
+}
+h4 { /* Header 4 */
+  font-size: 26px;
+}
+h5 { /* Header 5 */
+  font-size: 24px;
+}
+h6 { /* Header 6 */
+  font-size: 22px;
+}
+h7 { /* Header 6 */
+  font-size: 20px;
+  font-style: italic;
+}
+```
+
+
+
+
+```{r Load Environment, include=FALSE}
+## Load Environment
+suppressPackageStartupMessages(library(Seurat))
+suppressPackageStartupMessages(library(SeuratPipe))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tibble))
+suppressPackageStartupMessages(library(patchwork))
+suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(kableExtra))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(CIPR))
+suppressPackageStartupMessages(library(ggbrace))
+source("~/project/Functions/Utils.R")
+seed <- 42 # Seed number for scipt
+set.seed(seed) 
+
+vector <- 1:1000 
+subchonkify <- function(g, fig_width=5, fig_height=7, chunk_name = NULL, loop_variable = NULL, random_id = NULL) {
+  name <- paste0(chunk_name,"_",loop_variable,"_",random_id)
+  g_deparsed <- paste0(deparse(
+    function() {g}
+  ), collapse = '')
+
+  sub_chunk <- paste0("```{r sub_chunk_", name, ", fig.height=",
+   fig_height, ", fig.width=", fig_width, ", echo=FALSE, warning=FALSE, message=FALSE}",
+  "\n(", 
+    g_deparsed
+    , ")()",
+  "\n","```")
+
+  cat(knitr::knit(text = knitr::knit_expand(text = sub_chunk), quiet = TRUE))
+}
+```
+
+
+```{r Parameters, include=FALSE}
+obj <- readRDS(params$obj_path)
+seurat <- obj$seu
+opts <- obj$opts
+
+if(!is.null(opts$pcs_to_remove)) {
+  marker_path <- paste0(params$results_path, "/seu_harmony_npcs", opts$npcs,"_r",paste0(opts$pcs_to_remove, collapse = ""), "/dim", opts$ndims,"/clusters/seu_markers_res", opts$res, ".csv")
+} else {
+  marker_path <- paste0(params$results_path, "/seu_harmony_npcs", opts$npcs, "/dim", opts$ndims,"/clusters/seu_markers_res", opts$res, ".csv")
+}
+
+
+markers <- read.csv(marker_path, row.names = 1)
+
+
+seurat$seurat_clusters <- as.factor(seurat$seurat_clusters)
+Idents(seurat) <- seurat$seurat_clusters
+cell_type_markers <- flatten(opts$modules_group)
+metadata <- opts$meta_to_plot
+metadata <- c(metadata,"HCA_General_sctype","HCA_Specific_sctype","Hendo_sctype", "malat1_threshold")
+```
+
+
+
+# Workflow Options
+
+```{r Workflow Options, echo=FALSE}
+df <- as.data.frame(opts[c("npcs","ndims","res","n_hvgs","min.pct","logfc.threshold","topn_genes","diff_cluster_pct","pval_adj")])
+kable(t(df)) %>%
+  kable_styling(full_width = F,position = "left")
+```
+
+
+# Clusters - Numbered
+
+
+```{r Cluster Numbers, fig.height=7, fig.width=7, fig.retina=3, results='asis', echo=FALSE}
+dim_plot(seurat, group.by = "seurat_clusters", label = T, col_pal = opts$discrete_col_pal, raster = FALSE) 
+```
+
+
+# MetaData Plots 
+
+
+## Meta Data Feature Plots {.tabset .tabset-pills}
+
+
+```{r MetaData Plots, results='asis', echo=FALSE}
+for (m in metadata){
+  cat("\n")
+  cat("###",m,"{.tabset}","\n")
+
+  eval(parse(text=paste0("i <- nlevels(factor(seurat@meta.data$",m,"))"))) # Generate number of levels in each metadata to change plot size and layout
+  if (i== 1){ # These pieces of metadata do not need a split version of the umap due to there only being one level
+    p <- dim_plot(seurat, group.by=m, raster = FALSE)
+    subchonkify(p, fig_width=8, fig_height=7, chunk_name = "MetaData_Plots", loop_variable = m, random_id = 1)
+  } else if (i ==2) { # Split umaps are produced alongside normal umaps for those with 2 levels but the plot dimensions are set for better plotting visulalistion
+    cat("\n")
+    cat("####","Normal","\n")
+    p <- dim_plot(seurat, group.by=m, col_pal = opts$discrete_col_pal, raster = FALSE)
+    subchonkify(p, fig_width=8, fig_height=7, chunk_name = "MetaData_Plots", loop_variable = m, random_id = 2)
+    cat("\n")
+    cat("\n")
+    cat("####","Split","\n")
+    p <- dim_plot(seurat, group.by=m, split.by=m, ncol=2, col_pal = opts$discrete_col_pal, raster = FALSE) + NoLegend()
+    subchonkify(p, fig_width=10, fig_height=6, chunk_name = "MetaData_Plots", loop_variable = m, random_id = 3)
+    cat("\n")
+  } else{ # Split umaps are produced alongside normal umaps for those with multiple levels
+    cat("\n")
+    cat("####","Normal","\n")
+    p <- dim_plot(seurat, group.by=m, col_pal = opts$discrete_col_pal, raster = FALSE)
+    subchonkify(p, fig_width=6+(ceiling(i/16)*2), fig_height=7, chunk_name = "MetaData_Plots", loop_variable = m, random_id = 4)
+    cat("\n")
+    cat("\n")
+    cat("####","Split","\n")
+    p <- dim_plot(seurat, group.by=m, split.by=m, ncol=3, col_pal = opts$discrete_col_pal, raster = FALSE) + NoLegend()
+    subchonkify(p, fig_width=15, fig_height=5*(ceiling(i/3)), chunk_name = "MetaData_Plots", loop_variable = m, random_id = 5)
+    cat("\n")
+  }
+  
+  cat("\n")
+
+}
+```
+
+
+## QC Plots {.tabset}
+
+
+### Feature Plots
+
+```{r QC Feature Plots - Feature Plots, results='asis', echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=9}
+DefaultAssay(seurat) <- "RNA" 
+p <- feature_plot(seurat, features = c("nCount_RNA","nFeature_RNA", "percent.mt","MALAT1"), ncol = 2, raster = FALSE) 
+p
+```
+
+### Vln Plots
+
+```{r QC Violin Plots - Vln Plots, results='asis', echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+DefaultAssay(seurat) <- "RNA" 
+p <- VlnPlot(seurat, features = c("nCount_RNA","nFeature_RNA", "percent.mt","MALAT1"), ncol = 2, pt.size = 0, cols = opts$discrete_col_pal) & geom_jitter(height = 0, size = 0.5, show.legend = FALSE, alpha=0.1)
+p
+```
+
+
+### Correlation
+
+```{r QC Correlations,results='asis', echo=FALSE, warning=FALSE, message=FALSE, fig.width=15, fig.height=10}
+DefaultAssay(seurat) <- "RNA" 
+pca_feature_cor_plot(seurat, features = c("nCount_RNA","nFeature_RNA", "percent.mt","MALAT1"))
+```
+
+### Batch Stats
+
+```{r QC Batch Stats, echo=FALSE}
+df1 <- seurat@meta.data %>%
+  group_by(orig.ident) %>%
+  summarise_at(vars(nFeature_RNA), list(name = median)) 
+df1 <- as.data.frame(df1)
+rownames(df1) <- df1$orig.ident
+
+
+df2 <- seurat@meta.data %>%
+  group_by(orig.ident) %>%
+  summarise_at(vars(nCount_RNA), list(name = median))
+df2 <- as.data.frame(df2)
+rownames(df2) <- df2$orig.ident
+
+
+df3 <- as.data.frame(table(seurat$orig.ident))
+rownames(df3) <- df3$Var1
+
+order <- sort(df1$orig.ident)
+df1 <- df1[order,]
+df2 <- df2[order,]
+df3 <- df3[order,]
+
+df <- cbind(df1,df2[,2],df3[,2])
+rownames(df) <- NULL
+colnames(df) <- c("Batch", "Median Features", "Median Counts", "Cell Number")
+
+df <- df %>% mutate_if(is.numeric, ~round(., 0))
+
+df %>%
+  kbl() %>%
+  kable_styling()
+```
+
+
+## Cluster Contribution Plots {.tabset}
+
+
+
+### SAMPLE {.tabset .tabset-pills}
+
+#### Cluster Percentage
+
+```{r SAMPLE Cluster contribution, results='asis', echo=FALSE, warning=FALSE, message=FALSE}
+col_pal_many <- Polychrome::createPalette(nlevels(as.factor(seurat$SAMPLE)), opts$discrete_col_pal)
+names(col_pal_many) <- NULL
+subchonkify(percent_contribution_hist(metadata = seurat@meta.data, value = "SAMPLE", clusters = "seurat_clusters", col_pal = col_pal_many) + NoLegend(), fig_width = 7 + 0.3*nlevels(seurat@meta.data[["seurat_clusters"]]), chunk_name = "Orig.ident_Cluster_contribution", random_id = 1)
+```
+
+#### Relative Contribution
+
+```{r SAMPLE Relative contribution, results='asis', echo=FALSE, warning=FALSE, message=FALSE}
+subchonkify(relative_contribution_hist(metadata = seurat@meta.data, value = "SAMPLE", clusters = "seurat_clusters", col_pal = col_pal_many) + NoLegend(), fig_height = 5, fig_width = 7 + 0.5*nlevels(seurat@meta.data[["seurat_clusters"]]), chunk_name = "Orig.ident_Relative_contribution", random_id = 1)
+```
+
+#### Table
+
+```{r SAMPLE table, results='asis', echo=FALSE, warning=FALSE, message=FALSE}
+table(seurat$SAMPLE, seurat$seurat_clusters) %>%
+  kbl() %>%
+  kable_styling()
+```
+
+
+### STUDY {.tabset .tabset-pills}
+
+
+#### Cluster Percentage
+
+```{r STUDY Cluster contribution, results='asis', echo=FALSE, warning=FALSE, message=FALSE}
+subchonkify(percent_contribution_hist(metadata = seurat@meta.data, value = "STUDY", clusters = "seurat_clusters", col_pal = opts$discrete_col_pal), fig_width = 7 + 0.3*nlevels(seurat@meta.data[["seurat_clusters"]]), chunk_name = "Condition_Cluster_contribution", random_id = 1)
+```
+
+#### Relative Contribution
+
+```{r STUDY Relative contribution, results='asis', echo=FALSE, warning=FALSE, message=FALSE}
+subchonkify(relative_contribution_hist(metadata = seurat@meta.data, value = "STUDY", clusters = "seurat_clusters", col_pal = opts$discrete_col_pal), fig_height = 5, fig_width = 7 + 0.5*nlevels(seurat@meta.data[["seurat_clusters"]]), chunk_name = "Condition_Relative_contribution", random_id = 1)
+```
+
+#### Table
+
+```{r STUDY table, results='asis', echo=FALSE, warning=FALSE, message=FALSE}
+table(seurat$STUDY, seurat$seurat_clusters) %>%
+  kbl() %>%
+  kable_styling()
+```
+
+
+
+
+# Cell Type Markers {.tabset .tabset-pills}
+
+
+```{r Cell Type Markers Plots, results='asis', message=FALSE, warning=FALSE, echo=FALSE}
+
+DefaultAssay(seurat) <- "RNA" 
+for (j in 1:length(opts$modules_group)){
+  cell_type_markers <- opts$modules_group[[j]]
+  cat("\n")
+  cat("##",names(opts$modules_group)[j],"{.tabset .tabset-pills}","\n")
+  cat("\n")
+
+  for (i in 1:length(cell_type_markers)) {
+    name <- names(cell_type_markers[i])
+    test <- sum(!cell_type_markers[[i]] %in% rownames(seurat))
+    if (test > 0){
+      cell_type_markers[[i]] <- cell_type_markers[[i]][cell_type_markers[[i]] %in% rownames(seurat)]
+    }
+  }
+  
+  all_names <- names(cell_type_markers)# Get name for file
+  
+  for (m in 1:length(cell_type_markers)){ # Cycle through gene geneset in the marker list from above
+    genes <- cell_type_markers[[m]] # Get genes to plot
+
+    name <- all_names[m]
+  
+    if (length(genes) > 0){ # Prevent Running this element if there are no genes after gene check
+      ## set parameters for options in plotting
+      if (length(genes) == 2){ 
+        wid <- 10
+        hei_feature <- 6
+        ncols_feature <- 2
+        hei_vln <- 6
+        ncols_vln <- 2
+        hei_dot <- 6
+      } else {
+        wid <- 15
+        hei_feature <- 5*(ceiling((length(genes)/3)))
+        ncols_feature <- 3
+        hei_vln <- 5*(ceiling((length(genes)/2)))
+        ncols_vln <- 2
+        hei_dot <- length(genes)
+      }
+      if (hei_feature > 120){
+        hei_feature <- 120
+      }
+      if (hei_vln > 120){
+        hei_vln <- 120
+      }
+      cat("\n")
+      cat("###",name,"{.tabset}","\n")
+      
+      ## Plot Featureplot with viridis colour scale, cells are ordered by value
+      cat("\n")
+      cat("####","Feature","\n")
+      p <- feature_plot(seurat, features = genes, ncol = ncols_feature, order = T, raster = FALSE) 
+      subchonkify(p, fig_width=wid, fig_height=hei_feature, chunk_name = "Cell_Type_Markers_Plots", loop_variable = paste0(names(opts$modules_group)[j],"_",name), random_id = 1)
+      cat("\n")
+      
+      ### Plot VlnPlot with respective clustering    
+      cat("\n")
+      cat("####","Violin","\n")
+      p <- VlnPlot(seurat, features = genes, ncol = ncols_vln, pt.size = 0, cols = opts$discrete_col_pal) & geom_jitter(height = 0, size = 0.5, show.legend = FALSE, alpha=0.1)
+      subchonkify(p, fig_width=wid, fig_height=hei_vln, chunk_name = "Cell_Type_Markers_Plots", loop_variable = paste0(names(opts$modules_group)[j],"_",name), random_id = 2)
+      cat("\n")
+      
+      
+      ### Plot DotPlot with respective clustering    
+      cat("\n")
+      cat("####","Dot Plot","\n")
+      p <- dot_plot_gene(seurat, features = genes, scale.min = 0, scale.max = 100)
+      subchonkify(p, fig_width=wid, fig_height=hei_dot, chunk_name = "Cell_Type_Markers_Plots", loop_variable = paste0(names(opts$modules_group)[j],"_",name), random_id = 3)
+      cat("\n")
+      
+    }
+  }
+}
+```
+
+
+
+# Signautres {.tabset}
+
+
+```{r Signatures, echo=FALSE}
+cell_type_markers <- flatten(opts$modules_group)
+sig <- gsub("^.*?\\.", "", names(cell_type_markers))
+```
+
+## Feature
+
+```{r Signatures - Feature, results='asis', message=FALSE, warning=FALSE, echo=FALSE}
+if (length(sig) > 0){
+  p <- feature_plot(seurat, features = sig, ncol = 3, order = T, raster = FALSE) 
+  subchonkify(p, fig_width=15, fig_height=5*(ceiling((length(sig)/3))), chunk_name = "Signatures_Feature", random_id = 1)
+}
+```
+
+## Violin
+
+```{r Signatures - Violin, results='asis', message=FALSE, warning=FALSE, echo=FALSE}
+if (length(sig) > 0){
+  hei_vln <- 5*(ceiling((length(sig)/2)))
+  if (hei_vln > 120){
+    hei_vln <- 120
+  }
+  p <- VlnPlot(seurat, features = sig, ncol = 2, pt.size = 0, cols = opts$discrete_col_pal) & geom_jitter(height = 0, size = 0.5, show.legend = FALSE, alpha=0.1)
+  subchonkify(p, fig_width=15, fig_height= hei_vln, chunk_name = "Signatures_Violin", random_id = 1)
+}
+```
+
+## DotPlot
+
+```{r Signautre - DotPlot, results='asis', message=FALSE, warning=FALSE, echo=FALSE}
+if (length(sig) > 0){
+  p <- dot_plot(seurat, features = sig, scale.min = 0, scale.max = 100)
+  subchonkify(p, fig_width=20, fig_height=15, chunk_name = "Signatures_dotplot", random_id = 1)
+}
+```
+
+
+# Markers
+
+
+## Top 10 Markers {.tabset .tabset-pills}
+
+
+```{r Choose top10 markers, include=FALSE}
+top10 <- markers[markers$gene %in% rownames(x = seurat), ] |>
+  dplyr::filter(p_val_adj < 0.05) |>
+  dplyr::group_by(cluster) |>
+  dplyr::filter(pct.1 - pct.2 > 0.1) |>
+  dplyr::slice_max(n = 10, order_by = avg_log2FC)
+top10$cluster <- as.factor(top10$cluster)
+```
+
+
+
+```{r Print Cluster Markers, results='asis', message=FALSE, warning=FALSE, echo=FALSE}
+for (l in levels(top10$cluster)){
+  if (nrow(top10[top10$cluster==l,]) > 0) { # Only print genes if there are marker genes for that cluster
+    genes <- top10$gene[top10$cluster == l] # get genes for the specific cluster
+    
+    cat("\n")
+    cat("###","Cluster",l,"{.tabset}","\n")
+    
+    cat("\n")
+    cat("####","Feature","\n")
+    p <- feature_plot(seurat, features=genes, reduction="umap",ncol=3, raster = FALSE) 
+    subchonkify(p, fig_width=15, fig_height=5*(ceiling((length(genes)/3))), chunk_name = "Print_Cluster_Markers", loop_variable = l, random_id = 1)
+    cat("\n")
+    
+    
+    cat("\n")
+    cat("####","Violin","\n")
+    p <- VlnPlot(seurat, features=genes,ncol=2, pt.size = 0, cols = opts$discrete_col_pal) & geom_jitter(height = 0, size = 0.5, show.legend = FALSE, alpha=0.1) # Print violin plots with no points.
+    subchonkify(p, fig_width=15, fig_height=5*(ceiling((length(genes)/2))), chunk_name = "Print_Cluster_Markers", loop_variable = l, random_id = 2)
+    cat("\n")
+    
+    
+    cat("\n")
+    cat("####","Split Violin STUDY","\n")
+    p <- VlnPlot(seurat, features=genes,ncol=1, split.by = "STUDY", pt.size = 0, cols = opts$discrete_col_pal)
+    subchonkify(p, fig_width=15, fig_height=5*(ceiling((length(genes)))), chunk_name = "Print_Cluster_Markers", loop_variable = l, random_id = 3)
+    cat("\n")
+
+    
+    cat("\n")
+    cat("####","Split Violin - Cluster","\n")
+    p <- VlnPlot(seurat, features=genes,ncol=1, idents = l, split.by = "SAMPLE", group.by = "SAMPLE", pt.size = 0, cols = opts$discrete_col_pal)
+    subchonkify(p, fig_width=15, fig_height=5*(ceiling((length(genes)))), chunk_name = "Print_Cluster_Markers", loop_variable = l, random_id = 4)
+    cat("\n")
+  
+  }
+}
+```
+
+# CIPR Results
+
+
+```{r CIPR - Run, echo=FALSE, message=FALSE, warning=FALSE}
+significant_markers <- markers[markers$gene %in% rownames(x = seurat), ] |>
+  dplyr::filter(p_val_adj < 0.05) 
+
+CIPR(input_dat = significant_markers,
+     comp_method = "logfc_dot_product", 
+     reference = "hpca", 
+     plot_ind = F,
+     plot_top = F, 
+     global_results_obj = T, 
+     global_plot_obj = T)
+```
+ 
+ 
+```{r CIPR - Print Dot plot, fig.height=10, fig.width=15, fig.retina=3, echo=FALSE,message=FALSE, warning=FALSE}
+top_plots
+```
+
+```{r CIPR - Print table, echo=FALSE}
+rmarkdown::paged_table(CIPR_top_results)
+```
+
+
+
+
+# Henderson Gene Amalgamated Dotplot
+
+```{r Henderson Amalgamated Dotplot,message=FALSE, warning=FALSE, echo=FALSE,fig.width= 15, fig.height= 15} 
+tmp <- seurat
+tmp$seurat_clusters <- factor(seurat$seurat_clusters, levels = c(0,1,3,5,9,10,13,14,15, 2, 4, 6, 7, 8, 16, 17, 11,12 ))
+Idents(tmp) <- "Alpha.Annotations.tmp"
+
+plot <- DotPlot(tmp, features = unique(c(unlist(opts$modules_group$Hendo), "NRXN1","ERBB3","SOX10","S100B")), group.by = "seurat_clusters") + ggplot2::coord_flip(x=c(1,73), y=c(1,18),clip = "off") + 
+  eval(rlang::expr(ggplot2::scale_colour_distiller(name = NULL,type = "div", palette = "RdYlBu"))) + 
+  theme(axis.title.x = element_text(margin = margin(t = 80))) + theme(axis.title.y = element_text(margin = margin(r = 130))) +
+  ggplot2::theme(legend.position = "right") + 
+  geom_brace(xstart = -1, xend = -3, ystart = 1, yend = 9,pointing="side") +
+  annotate("text",x=-5,y=4.5,label="Cholangiocyte",angle = 45) +
+  geom_brace(xstart = -1, xend = -3, ystart = 10, yend = 11,pointing="side") +
+  annotate("text",x=-4,y=11,label="Hepatocyte",angle = 45) +
+  geom_brace(xstart = -1, xend = -3, ystart = 12, yend = 12,pointing="side") +
+  annotate("text",x=-4,y=12,label="Endothelia",angle = 45) +
+  geom_brace(xstart = -1, xend = -3, ystart = 13, yend = 13,pointing="side") +
+  annotate("text",x=-4,y=13,label="Myeloid Cell",angle = 45) +
+  geom_brace(xstart = -1, xend = -3, ystart = 14, yend = 14,pointing="side") +
+  annotate("text",x=-4,y=14,label="Lymphocyte",angle = 45) +
+  geom_brace(xstart = -1, xend = -3, ystart = 15, yend = 15,pointing="side") +
+  annotate("text",x=-4,y=15,label="Mesenchyme",angle = 45) +
+  geom_brace(xstart = -1, xend = -3, ystart = 16, yend = 16,pointing="side") +
+  annotate("text",x=-4,y=16,label="Erythrocyte",angle = 45) +
+  geom_brace(xstart = -1, xend = -3, ystart = 17, yend = 17,pointing="side") +
+  annotate("text",x=-4,y=17,label="Neuronal",angle = 45) +
+  geom_brace(xstart = -1, xend = -3, ystart = 18, yend = 18,pointing="side") +
+  annotate("text",x=-4,y=18,label="Doublet",angle = 45) +
+
+  geom_brace(xstart = 1, xend = 7, ystart = -1.5, yend = -3) +
+  annotate("text",x=3,y=-4,label="Hepatocytes",angle = 45) +
+  geom_brace(xstart = 8, xend = 14, ystart = -1.5, yend = -3) +
+  annotate("text",x=10.5,y=-4,label="Cholangiocytes",angle = 45) +
+  geom_brace(xstart = 15, xend = 22, ystart = -1.5, yend = -3) +
+  annotate("text",x=17.5,y=-4,label="Endothelia",angle = 45) +
+  geom_brace(xstart = 23, xend = 31, ystart = -1.5, yend = -3) +
+  annotate("text",x=26,y=-4,label="Mesenchyme",angle = 45) +
+  geom_brace(xstart = 32, xend = 33, ystart = -1.5, yend = -3) +
+  annotate("text",x=31.5,y=-4,label="Mesothelia",angle = 45) +
+  geom_brace(xstart = 34, xend = 37, ystart = -1.5, yend = -3) +
+  annotate("text",x=34.5,y=-4,label="Leucocytes",angle = 45) +
+  geom_brace(xstart = 38, xend = 43, ystart = -1.5, yend = -3) +
+  annotate("text",x=40.5,y=-3.5,label="MPs",angle = 45) +
+  geom_brace(xstart = 44, xend = 46, ystart = -1.5, yend = -3) +
+  annotate("text",x=44,y=-4,label="Lymphocytes",angle = 45) +
+  geom_brace(xstart = 47, xend = 52, ystart = -1.5, yend = -3) +
+  annotate("text",x=49,y=-3.7,label="T Cells",angle = 45) +
+  geom_brace(xstart = 53, xend = 54, ystart = -1.5, yend = -3) +
+  annotate("text",x=53,y=-3.7,label="B Cells",angle = 45) +
+  geom_brace(xstart = 55, xend = 56, ystart = -1.5, yend = -3) +
+  annotate("text",x=55.5,y=-3.5,label="ILCs",angle = 45) +
+  geom_brace(xstart = 57, xend = 58, ystart = -1.5, yend = -3) +
+  annotate("text",x=57,y=-3.8,label="Mast Cells",angle = 45) +
+  geom_brace(xstart = 59, xend = 60, ystart = -1.5, yend = -3) +
+  annotate("text",x=59.5,y=-3.5,label="PDCs",angle = 45) +
+  geom_brace(xstart = 61, xend = 64, ystart = -1.5, yend = -3) +
+  annotate("text",x=61.5,y=-3.8,label="Erythrocytes",angle = 45) +
+  geom_brace(xstart = 65, xend = 65, ystart = -1.5, yend = -3) +
+  annotate("text",x=64,y=-3.8,label="Neutrophils",angle = 45) +
+  geom_brace(xstart = 66, xend = 69, ystart = -1.5, yend = -3) +
+  annotate("text",x=67,y=-3.8,label="Cycling",angle = 45) +
+  geom_brace(xstart = 70, xend = 73, ystart = -1.5, yend = -3) +
+  annotate("text",x=71.5,y=-3.8,label="Neuronal",angle = 45) +
+  
+  theme(plot.margin = unit(c(0.01, 0.01, 0.05, 0.05), units="npc"))
+
+plot
+
+```
+
+
+
+
+# Map Clusters to Whole Dataset  {.tabset}
+
+## Plots
+
+```{r Map Data Back, results='asis', message=FALSE, warning=FALSE, echo=FALSE}
+whole <- readRDS("~/project/Liver_Cell_Atlas/Analysis_02/01_Broad_Cell_Annotations/seu.rds")
+plots <- list()
+for (i in levels(seurat$seurat_clusters)){
+  plot1 <- DimPlot(whole, cells.highlight = colnames(seurat)[seurat$seurat_clusters == i], raster = FALSE) & ggtitle(paste0("Cluster ",i))
+  plots[[i]] <- plot1
+}
+subchonkify(wrap_plots(plots, ncol = 3), fig_width=15, fig_height=5*(ceiling((length(plots)/3))), chunk_name = "MapBack", loop_variable = 1, random_id = 1)
+```
+
+## Table
+
+```{r Map Clusters table, echo=FALSE}
+seurat_meta <- seurat@meta.data[,"seurat_clusters", drop=FALSE ]
+colnames(seurat_meta) <- "Lineage_Clustering"
+whole_meta <- whole@meta.data[rownames(seurat_meta),"seurat_clusters",drop=FALSE]
+colnames(whole_meta) <- "Whole_Dataset_Clustering"
+
+df <- cbind(seurat_meta, whole_meta)
+df2 <- table(df$Whole_Dataset_Clustering, df$Lineage_Clustering)
+
+df2 %>%
+  kbl() %>%
+  kable_styling()
+```
+
+
+
+# Rachel Neuronal / Glial Genes {.tabset}
+
+These Genes were kindly provided by Rachel. They were marker genes she identified for a neuronal/Glial cell populations in her data. They indeed also highlight the same neuronal cluster in this data and therefore would suggested that Neuronal/Glial cells is an appropriate name for these cells. However, this can be discussed.
+
+## Feature Plot
+
+```{r, results='asis', message=FALSE, warning=FALSE, echo=FALSE, fig.width=15, fig.height=10}
+feature_plot(seurat, features = c("NRXN1","ERBB3","SOX10","S100B"), ncol = 3, order = T, raster = FALSE) 
+```
+
+## Violin Plot
+
+
+```{r, results='asis', message=FALSE, warning=FALSE, echo=FALSE, fig.width=15, fig.height=10}
+VlnPlot(seurat, features = c("NRXN1","ERBB3","SOX10","S100B"), ncol = 2, pt.size = 0, cols = opts$discrete_col_pal) & geom_jitter(height = 0, size = 0.5, show.legend = FALSE, alpha=0.1)
+```
+
+## Dot Plot
+
+```{r, results='asis', message=FALSE, warning=FALSE, echo=FALSE, fig.width=15, fig.height=5}
+dot_plot_gene(seurat, features = c("NRXN1","ERBB3","SOX10","S100B"), scale.min = 0, scale.max = 100)
+```
+
+
+# Clusters Notes
+
+```{r Cluster Names - Text, echo=FALSE, results="asis"}
+if (file.exists(paste0(params$results_path,"/cluster_text.txt"))){
+  cat(readLines(paste0(params$results_path,"/cluster_text.txt")), sep = '\n')
+} else {
+  file.create(paste0(params$results_path,"/cluster_text.txt"))
+  cat(readLines(paste0(params$results_path,"/cluster_text.txt")), sep = '\n')
+}
+```
+
+# Clusters - Names {.tabset}
+
+```{r Cluster Names - Plots, fig.height=7, fig.width=7, fig.retina=3, results='asis', echo=FALSE}
+for (i in params$final_cluster_param){
+        cat("\n")
+        cat("##",i,"\n")
+        p <- dim_plot(seurat, group.by = i, label = F, col_pal = opts$discrete_col_pal, raster = FALSE)
+        subchonkify(p, fig_width=10, fig_height=7, chunk_name = "Cluster_name", loop_variable = i, random_id = 1)
+        cat("\n")
+}
+
+```
+
+
+# Cluster Highlight
+
+
+```{r Cluster Highlight, results='asis', message=FALSE, warning=FALSE, echo=FALSE}
+plots <- list()
+for (i in levels(seurat$seurat_clusters)){
+  plot1 <- DimPlot(seurat, cells.highlight = colnames(seurat)[seurat$seurat_clusters == i], raster = FALSE) & ggtitle(paste0("Cluster ",i))
+  plots[[i]] <- plot1
+}
+subchonkify(wrap_plots(plots, ncol = 3), fig_width=15, fig_height=5*(ceiling((length(plots)/3))), chunk_name = "ClusterHighlight", loop_variable = 1, random_id = 1)
+```
+
+
+# Notes
+
+```{r Notes, echo=FALSE, results="asis"}
+if (file.exists(paste0(params$results_path,"/notes_text.txt"))){
+  cat(readLines(paste0(params$results_path,"/notes_text.txt")), sep = '\n')
+} else {
+  file.create(paste0(params$results_path,"/notes_text.txt"))
+  cat(readLines(paste0(params$results_path,"/notes_text.txt")), sep = '\n')
+}
+```
+
+
+## Session Info
+
+```{r Session Info}
+sessionInfo()
+```
+
+
