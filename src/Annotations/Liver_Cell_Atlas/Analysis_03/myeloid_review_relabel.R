@@ -143,6 +143,8 @@ seu_cleaned$Gamma.Annotation[which(seu_cleaned$Gamma.Annotation%in%c("12"))]<-"A
 DimPlot(seu_cleaned, group.by = "Gamma.Annotation",label=T)
 DimPlot(seu_cleaned, group.by = "RNA_snn_res.0.6",label=T)
 
+seu_cleaned$lineage_clusters<-seu_cleaned$RNA_snn_res.0.6
+
 ## save myeloid lineage object
 save(seu_cleaned, file=here("/media/redgar/Seagate Portable Drive/HLiCA/annotation_review/seu_cleaned_myeloid.RData"))
 
@@ -151,9 +153,10 @@ myeloid<-seu_cleaned@meta.data
 save(myeloid, file="/media/redgar/Seagate Portable Drive/HLiCA/annotation_review/myeloid_meta.RData")
 
 
-## as h5ad
-load(here("/media/redgar/Seagate Portable Drive/HLiCA/annotation_review/seu_cleaned_myeloid.RData"))
-DefaultAssay(seu_cleaned)<-"RNA"
-SaveH5Seurat(seu_cleaned, filename = here("/media/redgar/Seagate Portable Drive/HLiCA/annotation_review/seu_cleaned_myeloid.h5Seurat"), overwrite=T)
-Convert(here("/media/redgar/Seagate Portable Drive/HLiCA/annotation_review/seu_cleaned_myeloid.h5Seurat"), dest = "h5ad",overwrite=T)
+# ## as h5ad
+# load(here("/media/redgar/Seagate Portable Drive/HLiCA/annotation_review/seu_cleaned_myeloid.RData"))
+# DefaultAssay(seu_cleaned)<-"RNA"
+# SaveH5Seurat(seu_cleaned, filename = here("/media/redgar/Seagate Portable Drive/HLiCA/annotation_review/seu_cleaned_myeloid.h5Seurat"), overwrite=T)
+# Convert(here("/media/redgar/Seagate Portable Drive/HLiCA/annotation_review/seu_cleaned_myeloid.h5Seurat"), dest = "h5ad",overwrite=T)
 
+DotPlot(seu_cleaned, group.by = "RNA_snn_res.0.6",features = c("MARCO", "C1QC", "CD5L", "LYZ", "CCR2", "MRC1","CD1C","CLEC10A","FCER1A","HLA-DQA1"))
