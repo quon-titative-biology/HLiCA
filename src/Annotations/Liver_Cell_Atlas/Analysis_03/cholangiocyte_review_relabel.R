@@ -14,6 +14,9 @@ library(harmony)
 
 
 source("scripts/00_pretty_plots.R")
+source("scripts/00_fanciest_UMAP.R")
+source("scripts/colour_palette.R")
+
 
 
 obj <- readRDS(here("/media/redgar/Seagate Portable Drive/HLiCA/beta_annotation_objects/Cholangiocyte_clean.rds"))
@@ -103,4 +106,25 @@ save(seu_cleaned, file=here("/media/redgar/Seagate Portable Drive/HLiCA/annotati
 ## save meta
 cholangiocyte<-seu_cleaned@meta.data
 save(cholangiocyte, file="/media/redgar/Seagate Portable Drive/HLiCA/annotation_review/cholangiocyte_meta.RData")
+
+
+
+
+#### Fancy UMAP
+
+load(here("/media/redgar/Seagate Portable Drive/HLiCA/annotation_review/seu_cholangiocyte.RData"))
+UMAP = as.data.frame(Embeddings(seu_cleaned, reduction = "umap"))
+
+meta<-seu_cleaned@meta.data
+rm(seu_cleaned)
+gc()
+
+meta$Gamma.Annotation[which(meta$Gamma.Annotation=="Cycling Cells")]<-"Cycling"
+
+fanciest_UMAP(meta, UMAP)
+save_plts(fanciest_UMAP(meta, UMAP), "cholangiocyte_fancy", w=5, h=3.5)
+
+fanciest_UMAP(meta, UMAP, rnd_col = T)
+save_plts(fanciest_UMAP(meta, UMAP,rnd_col = T), "cholangiocyte_fancy_rndcol", w=5, h=3.5)
+
 

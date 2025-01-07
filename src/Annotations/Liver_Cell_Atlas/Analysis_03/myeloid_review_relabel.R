@@ -14,6 +14,9 @@ library(harmony)
 
 
 source("scripts/00_pretty_plots.R")
+source("scripts/00_fanciest_UMAP.R")
+source("scripts/colour_palette.R")
+
 
 
 obj <- readRDS(here("data/Myeloid_Cell_clean.rds"))
@@ -160,3 +163,22 @@ save(myeloid, file="/media/redgar/Seagate Portable Drive/HLiCA/annotation_review
 # Convert(here("/media/redgar/Seagate Portable Drive/HLiCA/annotation_review/seu_cleaned_myeloid.h5Seurat"), dest = "h5ad",overwrite=T)
 
 DotPlot(seu_cleaned, group.by = "RNA_snn_res.0.6",features = c("MARCO", "C1QC", "CD5L", "LYZ", "CCR2", "MRC1","CD1C","CLEC10A","FCER1A","HLA-DQA1"))
+
+
+#### Fancy UMAP
+
+load(here("/media/redgar/Seagate Portable Drive/HLiCA/annotation_review/seu_cleaned_myeloid.RData"))
+UMAP = as.data.frame(Embeddings(seu_cleaned, reduction = "umap"))
+
+meta<-seu_cleaned@meta.data
+rm(seu_cleaned)
+gc()
+
+meta$Gamma.Annotation[which(meta$Gamma.Annotation=="Cycling Cells")]<-"Cycling"
+
+fanciest_UMAP(meta, UMAP)
+save_plts(fanciest_UMAP(meta, UMAP), "myeloid_fancy", w=5, h=3.5)
+
+fanciest_UMAP(meta, UMAP, rnd_col = T)
+save_plts(fanciest_UMAP(meta, UMAP,rnd_col = T), "myeloid_fancy_rndcol", w=5, h=3.5)
+
