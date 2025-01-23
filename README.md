@@ -1,6 +1,6 @@
-# Human Liver Atlas for CZI
+# CZI Human Liver Cell Atlas
 
-This is code repository for integrative analysis of Human Liver Atlas project. We jointly examine human liver datasets from multiple labs to leverage the diversity across multiple populations.
+This is code repository for integrative analysis of Human Liver Cell Atlas (HLiCA) project. We jointly examine human liver datasets from multiple labs to leverage the diversity across multiple populations.
 
 
 The analysis contains multiple set of analysis as shown below
