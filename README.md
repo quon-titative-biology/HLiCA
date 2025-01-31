@@ -33,3 +33,4 @@ This contains pipeline for collecting dataset from multiple sources then uniform
 ## Covariate analysis
 
 ## Disease integration
+[https://github.com/quon-titative-biology/HLiCA/tree/main/src/Integration]
