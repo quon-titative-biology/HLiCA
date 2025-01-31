@@ -17,12 +17,16 @@ The analysis contains multiple set of analysis as shown below
 This contains pipeline for collecting dataset from multiple sources then uniformly processing them through cell ranger in order to remove potential technical variation occurring from processing pipeline.
 
 ## Metadata curation → harmonized metadata
+[https://github.com/quon-titative-biology/HLiCA/tree/main/src/DataManagement]
 
 ## Quality control
+[https://github.com/quon-titative-biology/HLiCA/tree/main/src/QualityControl]
 
 ## Data integration
+[https://github.com/quon-titative-biology/HLiCA/tree/main/src/Integration]
 
 ## Cell annotation → harmonized cell annotation
+[https://github.com/quon-titative-biology/HLiCA/tree/main/src/Annotations]
 
 ## Gradient annotation
 
