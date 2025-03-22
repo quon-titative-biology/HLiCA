@@ -1,4 +1,4 @@
-# CZI Human Liver Cell Atlas
+# HCA Human Liver Cell Atlas
 
 This is code repository for integrative analysis of Human Liver Cell Atlas (HLiCA) project. We jointly examine human liver datasets from multiple labs to leverage the diversity across multiple populations.
 
