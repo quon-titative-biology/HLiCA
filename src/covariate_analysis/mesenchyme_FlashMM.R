@@ -23,6 +23,14 @@ covariates <- c('STUDY', 'suspension_type','assay', 'donor_uuid', 'library_alias
 
 load(here("scratch/HLiCA/seu_mesenchyme.RData"))
 
+# relabel confirmed sex mislabel
+unique(seu_cleaned$orig.ident)
+seu_cleaned@meta.data$donor_sex[which(seu_cleaned$orig.ident %in% c("Henderson_EDI003_Mes","Henderson_EDI003_End"))]<-"male"
+
+# exclude possible sex mislabels and unclear sex sample
+keep_samples<-unique(seu_cleaned$orig.ident)[which(!(unique(seu_cleaned$orig.ident)%in%c("DasGupta_XHL318","DasGupta_XHL319","andrews_C59_SC_3pr_CD10YANXX_bamtofastq","andrews_C59_SC_5pr_CD1TGANXX_bamtofastq")))]
+seu_cleaned <- subset(seu_cleaned, subset = orig.ident %in% keep_samples)
+
 
 ## get counts
 counts <- as.matrix(seu_cleaned@assays$RNA@counts)
@@ -216,6 +224,13 @@ lapply(1:length(celltypes), function(x) save_DEG_plots(x))
 
 load(here("scratch/HLiCA/seu_mesenchyme.RData"))
 
+# relabel confirmed sex mislabel
+unique(seu_cleaned$orig.ident)
+seu_cleaned@meta.data$donor_sex[which(seu_cleaned$orig.ident %in% c("Henderson_EDI003_Mes","Henderson_EDI003_End"))]<-"male"
+
+# exclude possible sex mislabels and unclear sex sample
+keep_samples<-unique(seu_cleaned$orig.ident)[which(!(unique(seu_cleaned$orig.ident)%in%c("DasGupta_XHL318","DasGupta_XHL319")))]
+seu_cleaned <- subset(seu_cleaned, subset = orig.ident %in% keep_samples)
 
 ## age catagories
 age<-read.csv("scratch/HLiCA/HLiCA_scadmix_geneticAncestry_plus_age_catagories_manual_with_library_uuid.csv")

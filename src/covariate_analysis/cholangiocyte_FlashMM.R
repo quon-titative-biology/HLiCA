@@ -12,7 +12,7 @@ library(FLASHMM)
 library(ggsignif)
 
 
-source("scratch/HLiCA/volcano_FlashMM.R")
+source("/scratch/redgar25/HLiCA/volcano_FlashMM.R")
 
 
 
@@ -23,7 +23,15 @@ covariates <- c('STUDY', 'suspension_type','assay', 'donor_uuid', 'library_alias
 ## Differential expression with sex 
 ##############
 
-load(here("scratch/HLiCA/seu_cholangiocyte.RData"))
+load(here("/scratch/redgar25/HLiCA/seu_cholangiocyte.RData"))
+
+# relabel confirmed sex mislabel
+unique(seu_cleaned$orig.ident)
+seu_cleaned@meta.data$donor_sex[which(seu_cleaned$orig.ident %in% c("Henderson_EDI003_Mes","Henderson_EDI003_End"))]<-"male"
+
+# exclude possible sex mislabels and unclear sex sample
+keep_samples<-unique(seu_cleaned$orig.ident)[which(!(unique(seu_cleaned$orig.ident)%in%c("DasGupta_XHL318","DasGupta_XHL319","andrews_C59_SC_3pr_CD10YANXX_bamtofastq","andrews_C59_SC_5pr_CD1TGANXX_bamtofastq")))]
+seu_cleaned <- subset(seu_cleaned, subset = orig.ident %in% keep_samples)
 
 
 ## get counts
@@ -114,16 +122,16 @@ nrow(sig_de)
 
 cholangiocyte_volcano<-makeVolcano(out, 0.25, 0.05, "Differential expression between sexes", 0.6)
 cholangiocyte_volcano
-ggsave(cholangiocyte_volcano, file="scratch/HLiCA/cholangiocyte_sex_volcano.png", w=10,h=7)
+ggsave(cholangiocyte_volcano, file="/scratch/redgar25/HLiCA/cholangiocyte_sex_volcano.png", w=10,h=7)
 
 
 VlnPlot(seu_cleaned, features = c("KDM6A","TTTY14"), log = T, group.by = "donor_sex")
 VlnPlot(seu_cleaned, features = sig_de$gene[1:10], group.by = "donor_sex")
 
 
-source("scratch/HLiCA/00_GSEA_function.R")
+source("/scratch/redgar25/HLiCA/00_GSEA_function.R")
 #http://download.baderlab.org/EM_Genesets/current_release/Human/symbol/
-GO_file = here("scratch/HLiCA/Human_GOBP_AllPathways_with_GO_iea_October_26_2022_symbol.gmt")
+GO_file = here("/scratch/redgar25/HLiCA/Human_GOBP_AllPathways_with_GO_iea_October_26_2022_symbol.gmt")
 
 ### sex
 gene_list = out$coef
@@ -171,7 +179,7 @@ nrow(sig_de)
 
 cholangiocyte_volcano<-makeVolcano(sex_out_celltype[["Large Mucus Secreting"]], 0.5, 0.05, "Differential expression between sexes", round(abs(max(range(sex_out_celltype[["Large Mucus Secreting"]]$coef))),1))
 cholangiocyte_volcano
-#ggsave(cholangiocyte_volcano, file="scratch/HLiCA/cholangiocyte_sex_volcano.png", w=10,h=7)
+#ggsave(cholangiocyte_volcano, file="/scratch/redgar25/HLiCA/cholangiocyte_sex_volcano.png", w=10,h=7)
 
 
 VlnPlot(seu_cleaned, features = c("TTTY14","FLRT2"), log = T, split.by = "donor_sex",  group.by = "Gamma.Annotation")
@@ -188,9 +196,9 @@ do.call(rbind,lapply(1:length(sex_out_celltype), function(x){
 
 
 ### pathway for all
-source("scratch/HLiCA/00_GSEA_function.R")
+source("/scratch/redgar25/HLiCA/00_GSEA_function.R")
 #http://download.baderlab.org/EM_Genesets/current_release/Human/symbol/
-GO_file = here("scratch/HLiCA/Human_GOBP_AllPathways_with_GO_iea_October_26_2022_symbol.gmt")
+GO_file = here("/scratch/redgar25/HLiCA/Human_GOBP_AllPathways_with_GO_iea_October_26_2022_symbol.gmt")
 
 
 GSEA_sex_celltype<-lapply(1:length(sex_out_celltype), function(x){
@@ -223,7 +231,7 @@ save_DEG_plots<-function(celltype_num){
     
     plt_path_save<-plt_path[,c("pathway","Enrichment","pval","padj","ES","NES","nMoreExtreme","size","leadingEdge")]
     plt_path_save$leadingEdge<-sapply(1:nrow(plt_path_save), function(x) paste0(plt_path_save$leadingEdge[x][[1]], collapse = ", "))
-    write.csv(plt_path_save, file=paste("scratch/HLiCA/age_DEG_GSEA/",names(age_out_celltype)[celltype_num], "_sex_GSEA.csv", sep=""), row.names = FALSE)
+    write.csv(plt_path_save, file=paste("/scratch/redgar25/HLiCA/age_DEG_GSEA/",names(age_out_celltype)[celltype_num], "_sex_GSEA.csv", sep=""), row.names = FALSE)
     
     plt_path$direction_label<-as.factor(plt_path$Enrichment)
     levels(plt_path$direction_label)<-c(0.1,-0.1)
@@ -235,15 +243,15 @@ save_DEG_plots<-function(celltype_num){
       geom_hline(yintercept=15.5, color="grey")+scale_fill_manual(values=c("#D64A56","cornflowerblue"))+
       ggtitle(names(sex_out_celltype)[celltype_num])
     cholangiocyte_pathway
-    ggsave(cholangiocyte_pathway, file=paste("scratch/HLiCA/",names(sex_out_celltype)[celltype_num],"_sex_GSEA.png",sep=""), w=14,h=7)
+    ggsave(cholangiocyte_pathway, file=paste("/scratch/redgar25/HLiCA/",names(sex_out_celltype)[celltype_num],"_sex_GSEA.png",sep=""), w=14,h=7)
   }
   
   cholangiocyte_volcano<-makeVolcano(sex_out_celltype[[celltype_num]], 0.5, 0.05, paste("Differential expression between sexes\n",names(sex_out_celltype)[celltype_num], sep=""), round(max(abs(range(sex_out_celltype[[celltype_num]]$coef))),1)+0.2)
   cholangiocyte_volcano
-  ggsave(cholangiocyte_volcano, file=paste("scratch/HLiCA/",names(sex_out_celltype)[celltype_num],"_sex_volcano.png",sep=""), w=10,h=7)
+  ggsave(cholangiocyte_volcano, file=paste("/scratch/redgar25/HLiCA/",names(sex_out_celltype)[celltype_num],"_sex_volcano.png",sep=""), w=10,h=7)
   
   sig_de<-sex_out_celltype[[celltype_num]][(sex_out_celltype[[celltype_num]]$FDR < 0.05) & (abs(sex_out_celltype[[celltype_num]]$coef) > 0.5) , ]
-  write.csv(sig_de, file=paste("scratch/HLiCA/age_DEG_GSEA/",names(sex_out_celltype)[celltype_num], "_sex_DEG.csv", sep=""), row.names = FALSE)
+  write.csv(sig_de, file=paste("/scratch/redgar25/HLiCA/age_DEG_GSEA/",names(sex_out_celltype)[celltype_num], "_sex_DEG.csv", sep=""), row.names = FALSE)
 }
 
 
@@ -263,11 +271,19 @@ lapply(1:length(celltypes), function(x) save_DEG_plots(x))
 ## Differential expression with AGE all cholangiocytes
 ##########################################################################################################################
 
-load(here("scratch/HLiCA/seu_cholangiocyte.RData"))
+load(here("/scratch/redgar25/HLiCA/seu_cholangiocyte.RData"))
+
+# relabel confirmed sex mislabel
+unique(seu_cleaned$orig.ident)
+seu_cleaned@meta.data$donor_sex[which(seu_cleaned$orig.ident %in% c("Henderson_EDI003_Mes","Henderson_EDI003_End"))]<-"male"
+
+# exclude possible sex mislabels and unclear sex sample
+keep_samples<-unique(seu_cleaned$orig.ident)[which(!(unique(seu_cleaned$orig.ident)%in%c("DasGupta_XHL318","DasGupta_XHL319")))]
+seu_cleaned <- subset(seu_cleaned, subset = orig.ident %in% keep_samples)
 
 
 ## age catagories
-age<-read.csv("scratch/HLiCA/HLiCA_scadmix_geneticAncestry_plus_age_catagories_manual_with_library_uuid.csv")
+age<-read.csv("/scratch/redgar25/HLiCA/HLiCA_scadmix_geneticAncestry_plus_age_catagories_manual_with_library_uuid.csv")
 
 meta_add<-seu_cleaned@meta.data[,c("library_uuid","orig.ident")]
 meta_add$index<-rownames(meta_add)
@@ -409,10 +425,10 @@ head(age_out_celltype[["Large Mucus Secreting"]])
 
 cholangiocyte_volcano<-makeVolcano_age(age_out_celltype[["Large Mucus Secreting"]], 0.5, 0.05, "Differential expression between sexes", round(abs(max(range(age_out_celltype[["Large Mucus Secreting"]]$coef))),1))
 cholangiocyte_volcano
-#ggsave(cholangiocyte_volcano, file="scratch/HLiCA/cholangiocyte_sex_volcano.png", w=10,h=7)
+#ggsave(cholangiocyte_volcano, file="/scratch/redgar25/HLiCA/cholangiocyte_sex_volcano.png", w=10,h=7)
 
 VlnPlot(seu_cleaned, features = c("AGR2"), log = T, split.by = "age_con",  group.by = "Gamma.Annotation")+scale_fill_manual(values=c('#ffffd9','#edf8b1','#c7e9b4','#7fcdbb','#41b6c4','#1d91c0','#225ea8','#0c2c84', "grey",   "grey40" ,  "#74878a"))
-ggsave("scratch/HLiCA/AGR2_mucus_screting.png", w=10, h=5)
+ggsave("/scratch/redgar25/HLiCA/AGR2_mucus_screting.png", w=10, h=5)
 
 
 ########### significant gene count
@@ -425,9 +441,9 @@ do.call(rbind,lapply(1:length(age_out_celltype), function(x){
 
 
 ### pathway for all
-source("scratch/HLiCA/00_GSEA_function.R")
+source("/scratch/redgar25/HLiCA/00_GSEA_function.R")
 #http://download.baderlab.org/EM_Genesets/current_release/Human/symbol/
-GO_file = here("scratch/HLiCA/Human_GOBP_AllPathways_with_GO_iea_October_26_2022_symbol.gmt")
+GO_file = here("/scratch/redgar25/HLiCA/Human_GOBP_AllPathways_with_GO_iea_October_26_2022_symbol.gmt")
 
 
 GSEA_age_celltype<-lapply(1:length(age_out_celltype), function(x){
@@ -459,7 +475,7 @@ save_DEG_plots_age<-function(celltype_num){
   
   plt_path_save<-plt_path[,c("pathway","Enrichment","pval","padj","ES","NES","nMoreExtreme","size","leadingEdge")]
   plt_path_save$leadingEdge<-sapply(1:nrow(plt_path_save), function(x) paste0(plt_path_save$leadingEdge[x][[1]], collapse = ", "))
-  write.csv(plt_path_save, file=paste("scratch/HLiCA/age_DEG_GSEA/",names(age_out_celltype)[celltype_num], "_age_GSEA.csv", sep=""), row.names = FALSE)
+  write.csv(plt_path_save, file=paste("/scratch/redgar25/HLiCA/age_DEG_GSEA/",names(age_out_celltype)[celltype_num], "_age_GSEA.csv", sep=""), row.names = FALSE)
   
   plt_path$direction_label<-as.factor(plt_path$Enrichment)
   levels(plt_path$direction_label)<-c(0.1,-0.1)
@@ -471,14 +487,14 @@ save_DEG_plots_age<-function(celltype_num){
     geom_hline(yintercept=15.5, color="grey")+scale_fill_manual(values=c("#D64A56","cornflowerblue"))+
     ggtitle(names(age_out_celltype)[celltype_num])
   cholangiocyte_pathway
-  ggsave(cholangiocyte_pathway, file=paste("scratch/HLiCA/",names(age_out_celltype)[celltype_num],"_age_GSEA.png",sep=""), w=14,h=7)
+  ggsave(cholangiocyte_pathway, file=paste("/scratch/redgar25/HLiCA/",names(age_out_celltype)[celltype_num],"_age_GSEA.png",sep=""), w=14,h=7)
   
   cholangiocyte_volcano<-makeVolcano_age(age_out_celltype[[celltype_num]], 0.5, 0.05, paste("Differential expression between sexes\n",names(age_out_celltype)[celltype_num], sep=""), round(max(abs(range(age_out_celltype[[celltype_num]]$coef))),1)+0.2)
   cholangiocyte_volcano
-  ggsave(cholangiocyte_volcano, file=paste("scratch/HLiCA/",names(age_out_celltype)[celltype_num],"_age_volcano.png",sep=""), w=10,h=7)
+  ggsave(cholangiocyte_volcano, file=paste("/scratch/redgar25/HLiCA/",names(age_out_celltype)[celltype_num],"_age_volcano.png",sep=""), w=10,h=7)
   
   sig_de<-age_out_celltype[[celltype_num]][(age_out_celltype[[celltype_num]]$FDR < 0.05) & (abs(age_out_celltype[[celltype_num]]$coef) > 0.5) , ]
-  write.csv(sig_de, file=paste("scratch/HLiCA/age_DEG_GSEA/",names(age_out_celltype)[celltype_num], "_age_DEG.csv", sep=""), row.names = FALSE)
+  write.csv(sig_de, file=paste("/scratch/redgar25/HLiCA/age_DEG_GSEA/",names(age_out_celltype)[celltype_num], "_age_DEG.csv", sep=""), row.names = FALSE)
 }
 
 save_DEG_plots_age(1)
@@ -536,6 +552,133 @@ age_cholangiocyte<-ggplot() +
   ylim(0, ceiling(max(data_plot$value))*1.1)
 age_cholangiocyte
 
-ggsave(age_cholangiocyte, file="scratch/HLiCA/age_cholangiocyte_genes.png", h=8, w=8)
+ggsave(age_cholangiocyte, file="/scratch/redgar25/HLiCA/age_cholangiocyte_genes.png", h=8, w=8)
 
 
+
+
+
+##########################
+## local plotting
+##########################
+load(here("/media/redgar/Seagate Portable Drive/HLiCA/annotation_review/seu_cholangiocyte.RData"))
+
+## age catagories
+age<-read.csv(here("data/HLiCA_scadmix_geneticAncestry_plus_age_catagories_manual_with_library_uuid.csv"))
+
+meta_add<-seu_cleaned@meta.data[,c("library_uuid","orig.ident")]
+meta_add$index<-rownames(meta_add)
+meta_add<-merge(meta_add, age, by="orig.ident")
+dim(meta_add)
+
+meta_add<-meta_add[match(colnames(seu_cleaned), meta_add$index),]
+identical(colnames(seu_cleaned), meta_add$index)
+
+seu_cleaned <- AddMetaData(seu_cleaned, metadata = meta_add)
+
+#### Age continuum
+seu_cleaned$age_con<-as.factor(seu_cleaned$donor_age_cat)
+levels(seu_cleaned$age_con)<-c( "<19", NA, "19-30","31-40","41-50","51-60","61-70","71-80","81-90" )
+seu_cleaned$age_con<-factor(seu_cleaned$age_con, levels = c(  NA,"<19",  "19-30"   ,  "31-40"   ,  "41-50"   ,  "51-60" ,    "61-70"   ,  "71-80"   ,  "81-90" ))
+seu_cleaned$age_int<-as.numeric(seu_cleaned$age_con)
+
+table(seu_cleaned$age_int, seu_cleaned$age_con)
+
+with_age<-colnames(seu_cleaned)[which(!(is.na(seu_cleaned$age_int)))]
+seu_cleaned$cell<-colnames(seu_cleaned)
+seu_cleaned_age<-subset(seu_cleaned, subset = cell %in% with_age)
+
+
+
+### smooth line violin plot
+data_plot<-FetchData(seu_cleaned_age, vars = c("AGR2","EZR","LGALS3", "ITGB1"))
+data_plot$cell_id<-rownames(data_plot)
+data_plot<-melt(data_plot)
+meta<-seu_cleaned_age@meta.data
+meta$cell_id<-rownames(meta)
+
+data_plot<-merge(data_plot, meta, by="cell_id")
+colnames(data_plot)[which(colnames(data_plot)=="variable")]<-"gene"
+
+Means <- data_plot %>% group_by(age_con, gene,Gamma.Annotation) %>%
+  summarize(Avg = mean(value))
+
+
+## significance 
+celltypes<-unique(seu_cleaned_age$Gamma.Annotation)
+
+
+
+sig_genes_relaxed<-do.call(rbind,lapply(1:length(celltypes), function(celltype_num){
+  print(celltypes[celltype_num])
+  deg<-read.csv(here(paste("data/age_sex_DEG_GSEA/",celltypes[celltype_num], "_age_DEG.csv", sep="")))
+  sig<-deg[(deg$FDR < 0.05) &  (abs(deg$coef) > 0.1) , ]
+  if(nrow(sig)>0){
+    sig$Gamma.Annotation<-celltypes[celltype_num]
+    sig}
+}))
+
+
+data_plot$Gamma.Annotation<-as.factor(data_plot$Gamma.Annotation)
+levels(data_plot$Gamma.Annotation)<-c("CXCL8+ Keratin" , "LAMC2+ Cholangiocyte","Mucus Secreting", "ApoLipo","Keratin")
+data_plot$Gamma.Annotation<-factor(data_plot$Gamma.Annotation, levels=rev(c("ApoLipo","Keratin","LAMC2+ Cholangiocyte","CXCL8+ Keratin", "Mucus Secreting")))
+
+Means$Gamma.Annotation<-as.factor(Means$Gamma.Annotation)
+levels(Means$Gamma.Annotation)<-c("CXCL8+ Keratin" , "LAMC2+ Cholangiocyte","Mucus Secreting", "ApoLipo","Keratin")
+Means$Gamma.Annotation<-factor(Means$Gamma.Annotation, levels=rev(c("ApoLipo","Keratin","LAMC2+ Cholangiocyte","CXCL8+ Keratin", "Mucus Secreting")))
+
+age_cholangiocyte<-ggplot() +
+  geom_violin(data = data_plot, mapping = aes(x = age_con, y = value), color="grey80", fill="grey80") +
+  geom_line(data = Means, mapping = aes(x = age_con, y = Avg, group=gene), color="black")+
+  facet_grid(gene~Gamma.Annotation)+theme_bw()+xlab("Age")+ylab("Expression")+
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  scale_fill_manual(values=c('#ffffd9','#edf8b1','#c7e9b4','#7fcdbb','#41b6c4','#1d91c0','#225ea8','#0c2c84', "grey",   "grey40" ,  "#74878a"))+
+  ylim(0, ceiling(max(data_plot$value))*1.1)
+age_cholangiocyte
+
+save_plts(age_cholangiocyte, "age_mucus", w=9,h=5)
+
+# cell count 
+count_plot<-as.data.frame(table(seu_cleaned_age$Gamma.Annotation, seu_cleaned_age$age_con))
+
+count_bar<-ggplot(count_plot, aes(Var2, Freq, fill=Var2))+geom_bar(stat="identity", color="black")+facet_wrap(~Var1, ncol=5)+
+  scale_fill_manual(values=c('#ffffd9','#edf8b1','#c7e9b4','#7fcdbb','#41b6c4','#1d91c0','#225ea8','#0c2c84', "grey",   "grey40" ,  "#74878a"))+theme_bw()
+plot_grid(age_cholangiocyte,count_bar, ncol=1)
+
+center_plot<-as.data.frame(table(seu_cleaned_age$STUDY, seu_cleaned_age$age_con))
+
+
+
+
+## count plots
+seu_cleaned_age$research_centre<-as.factor(seu_cleaned_age$study)
+levels(seu_cleaned_age$research_centre)<-c("UHN","GIS/A*STAR", "JMU","VIB-UGent","Edin", "Mass")
+
+count_age <- seu_cleaned_age@meta.data %>%
+  group_by(age_con, Gamma.Annotation,research_centre) %>%  # Replace 'cell_type' with your factor column
+  summarise(n = n(), .groups = "drop")
+
+age_count <- ggplot(count_age, aes(x = age_con, y = n, fill = research_centre)) +  # Fill by the new factor column
+  geom_bar(stat = "identity", color = "black") +fillscale_study+facet_wrap(~Gamma.Annotation, ncol=5)+
+  theme(legend.position = "right") +  ylab("Cell Count")+xlab("Age (Years)")
+
+age_count
+
+## cells per sample
+count_age <- seu_cleaned_age@meta.data %>%
+  group_by(age_con, Gamma.Annotation) %>%  # Replace 'cell_type' with your factor column
+  summarise(n = n(), .groups = "drop")
+
+count_samples <- seu_cleaned_age@meta.data[,c("age_con","library_alias")]
+count_samples<-count_samples[!duplicated(count_samples),]
+samples_per_age<-as.data.frame(table(count_samples$age_con))
+
+count_age<-merge(count_age, samples_per_age, by.x="age_con", by.y="Var1")
+count_age$cell_per_sample<-count_age$n/count_age$Freq
+
+count_bar<-ggplot(count_age, aes(age_con, cell_per_sample, fill=age_con))+geom_bar(stat="identity", color="black")+facet_wrap(~Gamma.Annotation, ncol=5)+
+  scale_fill_manual(values=c('#ffffd9','#edf8b1','#c7e9b4','#7fcdbb','#41b6c4','#1d91c0','#225ea8','#0c2c84',
+                             "grey",   "grey40" ,  "#74878a"))+theme_bw()
+count_bar

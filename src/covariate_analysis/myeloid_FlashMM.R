@@ -10,7 +10,7 @@ library(cowplot)
 library(RColorBrewer)
 library(FLASHMM)
 
-source("scratch/HLiCA/volcano_FlashMM.R")
+source("/scratch/redgar25/HLiCA/volcano_FlashMM.R")
 
 
 
@@ -20,8 +20,16 @@ covariates <- c('STUDY', 'suspension_type','assay', 'donor_uuid', 'library_alias
 ##############
 ## Differential expression with sex 
 ##############
+load(here("/scratch/redgar25/HLiCA/seu_cleaned_myeloid.RData"))
 
-load(here("scratch/HLiCA/seu_cleaned_myeloid.RData"))
+# relabel confirmed sex mislabel
+unique(seu_cleaned$orig.ident)
+seu_cleaned@meta.data$donor_sex[which(seu_cleaned$orig.ident %in% c("Henderson_EDI003_Mes","Henderson_EDI003_End"))]<-"male"
+
+# exclude possible sex mislabels and unclear sex sample
+keep_samples<-unique(seu_cleaned$orig.ident)[which(!(unique(seu_cleaned$orig.ident)%in%c("DasGupta_XHL318","DasGupta_XHL319","andrews_C59_SC_3pr_CD10YANXX_bamtofastq","andrews_C59_SC_5pr_CD1TGANXX_bamtofastq")))]
+seu_cleaned <- subset(seu_cleaned, subset = orig.ident %in% keep_samples)
+
 
 
 ## get counts
@@ -281,11 +289,20 @@ VlnPlot(seu_cleaned, features = c("IL1B"), log = T, split.by = "donor_sex",  gro
 ## Differential expression with AGE all myeloids
 ##########################################################################################################################
 
-load(here("scratch/HLiCA/seu_cleaned_myeloid.RData"))
+load(here("/scratch/redgar25/HLiCA/seu_cleaned_myeloid.RData"))
+
+# relabel confirmed sex mislabel
+unique(seu_cleaned$orig.ident)
+seu_cleaned@meta.data$donor_sex[which(seu_cleaned$orig.ident %in% c("Henderson_EDI003_Mes","Henderson_EDI003_End"))]<-"male"
+
+# exclude possible sex mislabels and unclear sex sample
+keep_samples<-unique(seu_cleaned$orig.ident)[which(!(unique(seu_cleaned$orig.ident)%in%c("DasGupta_XHL318","DasGupta_XHL319")))]
+seu_cleaned <- subset(seu_cleaned, subset = orig.ident %in% keep_samples)
+
 
 
 ## age catagories
-age<-read.csv("scratch/HLiCA/HLiCA_scadmix_geneticAncestry_plus_age_catagories_manual_with_library_uuid.csv")
+age<-read.csv("/scratch/redgar25/HLiCA/HLiCA_scadmix_geneticAncestry_plus_age_catagories_manual_with_library_uuid.csv")
 
 meta_add<-seu_cleaned@meta.data[,c("library_uuid","orig.ident")]
 meta_add$index<-rownames(meta_add)
