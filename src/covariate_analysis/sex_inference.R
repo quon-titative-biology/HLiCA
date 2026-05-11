@@ -147,12 +147,4 @@ ggsave(plot_grid(score_box,boxes,ncol=1, align="v", rel_heights = c(2,1)),
 
 
 
-# C59 sspecific differences
-# C59<-subset(d10x, subset = donor == "C59")
-# C59_blend<-FeaturePlot(C59, features = c("XIST", "RPS4Y1"), blend = TRUE)
-# ggsave(C59_blend, file="figures/jpeg/C59_XIST_RPS4Y1.jpeg", width = 10, height=3)
-#
-# FeaturePlot(C59, features = c("XIST", "RPS4Y1"), blend = TRUE)
-# FeaturePlot(C59, features = c("XIST", "RPS4Y1"), blend = TRUE, split.by = "assay")
-# VlnPlot(C59, features = c("XIST", "RPS4Y1"), group.by = "assay", split.by = "assay")
 
